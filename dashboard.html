@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ပြင်ဆင်မှု Dashboard</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>တင်သွင်းထားသော စာရင်းများ</h2>
+        </header>
+
+        <!-- Navigation back to Form -->
+        <div class="nav-container">
+            <a href="index.html" class="nav-link">Form သို့ ပြန်သွားရန်</a>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="All">အားလုံး</button>
+            <button class="filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
+            <button class="filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
+            <button class="filter-btn" data-filter="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</button>
+        </div>
+        
+        <div id="loading">Loading Data...</div>
+        <div id="recordList">
+            <!-- Data will be loaded here by JavaScript -->
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
