@@ -5,51 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repair Tracker App</title>
     <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="app-nav">
-        <button id="formViewBtn" class="nav-btn active"><i class="fas fa-edit"></i> မှတ်တမ်းတင်ရန်</button>
-        <button id="dashboardViewBtn" class="nav-btn"><i class="fas fa-table-list"></i> Dashboard</button>
-    </nav>
+    <div class="app-container">
+        <nav class="app-nav">
+            <button id="formViewBtn" class="nav-btn active">မှတ်တမ်းတင်ရန်</button>
+            <button id="dashboardViewBtn" class="nav-btn">Dashboard</button>
+        </nav>
 
-    <!-- Form View -->
-    <main id="formView" class="view active-view">
-        <div class="container">
-            <form id="repairForm">
-                <!-- Form fields from previous step... -->
+        <!-- View 1: Data Entry Form -->
+        <main id="formView" class="view active-view">
+             <form id="repairForm">
+                <div class="form-section">
+                    <h3>အထွေထွေ အချက်အလက်</h3>
+                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" id="nrc" name="nrc" required></div>
+                    <div class="form-group"><label>အမည်</label><input type="text" id="name" name="name" required></div>
+                    <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" id="submissionDate" name="submissiondate" required></div>
+                </div>
+                <div class="form-section">
+                    <h3>ပြင်ဆင်ရန် လွဲချက်များ</h3>
+                    <div id="correctionsContainer"></div>
+                    <button type="button" id="addCorrectionBtn" class="secondary-btn">+ လွဲချက်အသစ် ထပ်ထည့်ရန်</button>
+                </div>
+                <div class="form-section">
+                    <h3>သက်ဆိုင်ရာ ဓာတ်ပုံ</h3>
+                    <div class="form-group"><input type="file" id="photoInput" name="image" accept="image/*, .jpg, .jpeg" required></div>
+                </div>
+                <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
             </form>
-        </div>
-    </main>
+        </main>
 
-    <!-- Dashboard View -->
-    <main id="dashboardView" class="view">
-        <div class="dashboard-container">
-            <div class="filter-controls">
-                <div class="filter-group">
-                    <label>အခြေအနေ:</label>
-                    <select id="statusFilter">
-                        <option value="all">အားလုံး</option>
-                        <option value="စီစစ်ဆဲ">စီစစ်ဆဲ</option>
-                        <option value="အတည်ပြုပြီး">အတည်ပြုပြီး</option>
-                        <option value="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</option>
-                    </select>
+        <!-- View 2: Dashboard -->
+        <main id="dashboardView" class="view">
+            <header class="dashboard-header">
+                <h2><span id="recordCount">0</span> မှတ်တမ်းများ</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="monthFilter">လအလိုက် စစ်ရန်</label>
+                        <select id="monthFilter"></select>
+                    </div>
+                     <div class="filter-group-status">
+                        <button class="status-filter-btn active" data-filter="all">All</button>
+                        <button class="status-filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
+                        <button class="status-filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
+                    </div>
                 </div>
-                <div class="filter-group">
-                    <label>လအလိုက်:</label>
-                    <select id="monthFilter">
-                        <option value="all">အားလုံး</option>
-                    </select>
-                </div>
-            </div>
-            <div id="dashboardRecordList"></div>
-        </div>
-    </main>
+            </header>
+            <div id="recordList"></div>
+        </main>
+    </div>
     
     <!-- Toast Notification Container -->
     <div id="toastContainer"></div>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
