@@ -4,11 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- ဒီနေရာမှာ သင့် App နာမည်ကို ပြောင်းနိုင်ပါတယ် -->
-    <title>Repair Tracker Dashboard</title>
+    <!-- App Title (for browser tab) -->
+    <title>Repair Tracker App</title>
+
+    <!-- ### START: PWA & APP ICON SETUP ### -->
     
-    <!-- ဒီနေရာက favicon.ico ကို သေချာထည့်ထားကြောင်း စစ်ဆေးပါ -->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="site.webmanifest">
+    
+    <!-- Theme Color for Browser UI -->
+    <meta name="theme-color" content="#007bff">
+    
+    <!-- Main Favicon -->
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    
+    <!-- Apple Touch Icon (for iOS "Add to Home Screen") -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <!-- ### END: PWA & APP ICON SETUP ### -->
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -75,7 +90,7 @@
         </main>
     </div>
 
-    <!-- Edit Modal (Stays the same structure, but machineID is now a select) -->
+    <!-- Edit Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-button">×</span>
