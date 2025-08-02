@@ -3,128 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- App Title (for browser tab) -->
-    <title>Repair Tracker App</title>
-
-    <!-- ### START: PWA & APP ICON SETUP ### -->
-    
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="site.webmanifest">
-    
-    <!-- Theme Color for Browser UI -->
-    <meta name="theme-color" content="#007bff">
-    
-    <!-- Main Favicon -->
-    <link rel="icon" href="favicon.ico" sizes="any">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    
-    <!-- Apple Touch Icon (for iOS "Add to Home Screen") -->
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    
-    <!-- ### END: PWA & APP ICON SETUP ### -->
-    
+    <title>Repair Tracker</title>
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <nav class="app-nav">
-            <button id="formViewBtn" class="nav-btn active">မှတ်တမ်းတင်ရန်</button>
-            <button id="dashboardViewBtn" class="nav-btn">Dashboard</button>
-        </nav>
+    <div class="container">
+        <header class="app-title">
+            <h1>Repair Tracker</h1>
+        </header>
 
-        <!-- View 1: Data Entry Form -->
-        <main id="formView" class="view active-view">
-            <div class="container">
-                <header>
-                    <h1>ပြင်ဆင်ခွင့် တင်ရန်</h1>
-                    <p>လိုအပ်သောအချက်အလက်များကို ဖြည့်စွက်ပါ</p>
-                </header>
-                <form id="repairForm">
-                    <div class="form-group"><label for="name">အမည်</label><input type="text" id="name" name="name" required></div>
-                    <div class="form-group"><label for="nrc">နိုင်ငံသားကဒ်နံပါတ်</label><input type="text" id="nrc" name="nrc" required></div>
-                    <div class="form-group"><label for="phone">ဖုန်းနံပါတ်</label><input type="tel" id="phone" name="phone" required></div>
-                    <div class="form-group"><label for="submissionDate">ပြင်ဆင်ခွင့်တင်သည့်ရက်စွဲ</label><input type="date" id="submissionDate" name="submissiondate" required></div>
-                    <div class="form-group">
-                        <label for="machineID">ပြင်ဆင်သည့်စက်</label>
-                        <select id="machineID" name="machineid" required>
-                            <option value="">စက်နံပါတ် ရွေးချယ်ပါ</option>
-                            <option value="EK01">EK01</option>
-                            <option value="EK02">EK02</option>
-                            <option value="EK03">EK03</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="status">အခြေအနေ</label>
-                        <select id="status" name="status" required>
-                            <option value="စီစစ်ဆဲ">စီစစ်ဆဲ</option>
-                            <option value="အတည်ပြုပြီး">အတည်ပြုပြီး</option>
-                            <option value="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</option>
-                        </select>
-                    </div>
-                    <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
-                </form>
-            </div>
-        </main>
-
-        <!-- View 2: Dashboard -->
-        <main id="dashboardView" class="view">
-            <div class="container">
-                <header>
-                    <h2>တင်သွင်းထားသော စာရင်းများ</h2>
-                </header>
-                <div class="filter-container">
-                    <button class="filter-btn active" data-filter="all">အားလုံး</button>
-                    <button class="filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
-                    <button class="filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
-                    <button class="filter-btn" data-filter="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</button>
-                </div>
-                <div id="loading">
-                    <div class="spinner"></div>
-                    <p>Data များ ရယူနေပါသည်...</p>
-                </div>
-                <div id="recordList">
-                    <!-- Data cards will be loaded here -->
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">×</span>
-            <h2>အချက်အလက် ပြင်ဆင်ရန်</h2>
-            <form id="editForm">
-                <input type="hidden" id="editId" name="id">
-                <input type="hidden" name="action" value="update">
-                <div class="form-group"><label for="editName">အမည်</label><input type="text" id="editName" name="name" required></div>
-                <div class="form-group"><label for="editNrc">နိုင်ငံသားကဒ်နံပါတ်</label><input type="text" id="editNrc" name="nrc" required></div>
-                <div class="form-group"><label for="editPhone">ဖုန်းနံပါတ်</label><input type="tel" id="editPhone" name="phone" required></div>
-                <div class="form-group">
-                    <label for="editMachineID">ပြင်ဆင်သည့်စက်</label>
-                    <select id="editMachineID" name="machineid" required>
-                        <option value="EK01">EK01</option>
-                        <option value="EK02">EK02</option>
-                        <option value="EK03">EK03</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="editStatus">အခြေအနေ</label>
-                    <select id="editStatus" name="status" required>
+        <form id="repairForm">
+            <div class="form-section">
+                <h3>အထွေထွေ အချက်အလက်</h3>
+                <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" id="nrc" name="nrc" required></div>
+                <div class="form-group"><label>အမည်</label><input type="text" id="name" name="name" required></div>
+                <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" id="phone" name="phone"></div>
+                <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" id="submissionDate" name="submissiondate" required></div>
+                <div class="form-group"><label>အခြေအနေ</label>
+                    <select id="status" name="status" required>
                         <option value="စီစစ်ဆဲ">စီစစ်ဆဲ</option>
                         <option value="အတည်ပြုပြီး">အတည်ပြုပြီး</option>
                         <option value="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</option>
                     </select>
                 </div>
-                <button type="submit" id="updateButton">သိမ်းဆည်းမည်</button>
-            </form>
-        </div>
+            </div>
+
+            <div class="form-section">
+                <h3>ပြင်ဆင်ရန် လွဲချက်များ</h3>
+                <div id="correctionsContainer">
+                    <!-- Dynamic fields will be added here -->
+                </div>
+                <button type="button" id="addCorrectionBtn" class="secondary-btn">+ လွဲချက်အသစ် ထပ်ထည့်ရန်</button>
+            </div>
+            
+            <div class="form-section">
+                <h3>သက်ဆိုင်ရာ ဓာတ်ပုံ</h3>
+                <div class="form-group">
+                    <input type="file" id="photoInput" name="image" accept="image/*" required>
+                </div>
+            </div>
+
+            <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
+            <p id="uploadStatus"></p>
+        </form>
+
+        <div class="divider"></div>
+        <h2><span id="recordCount"></span> မှတ်တမ်းများ</h2>
+        <div id="recordList"></div>
     </div>
-
-    <!-- Toast Notification Container -->
-    <div id="toastContainer"></div>
-
     <script src="script.js"></script>
 </body>
 </html>
