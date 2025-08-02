@@ -26,8 +26,8 @@ function switchView(viewName) {
     dashboardView.classList.toggle('active-view', viewName === 'dashboard');
     formViewBtn.classList.toggle('active', viewName === 'form');
     dashboardViewBtn.classList.toggle('active', viewName === 'dashboard');
-    if (viewName === 'dashboard' && cachedData.length === 0) {
-        loadAndDisplayRecords(true);
+    if (viewName === 'dashboard') {
+        loadAndDisplayRecords(true); // Always refresh when switching to dashboard
     }
 }
 formViewBtn.addEventListener('click', () => switchView('form'));
@@ -38,7 +38,7 @@ dashboardViewBtn.addEventListener('click', () => switchView('dashboard'));
 function addCorrectionPair() {
     const pairDiv = document.createElement('div');
     pairDiv.className = 'correction-pair';
-    pairDiv.innerHTML = `<input type="text" placeholder="လွဲချက်" class="mistake-input" required><input type="text" placeholder="အမှန်" class="correction-input" required><button type="button" class="remove-btn">×</button>`;
+    pairDiv.innerHTML = `<input type="text" placeholder="လွဲချက်" class="mistake-input"><input type="text" placeholder="အမှန်" class="correction-input"><button type="button" class="remove-btn">×</button>`;
     correctionsContainer.appendChild(pairDiv);
     pairDiv.querySelector('.remove-btn').addEventListener('click', () => pairDiv.remove());
 }
@@ -55,7 +55,6 @@ form.addEventListener('submit', async function(e) {
         mistake: pair.querySelector('.mistake-input').value,
         correction: pair.querySelector('.correction-input').value
     })).filter(c => c.mistake && c.correction);
-    const correctionsJSON = JSON.stringify(corrections);
 
     const photoFile = form.photoInput.files[0];
     const imgbbFormData = new FormData();
@@ -64,27 +63,29 @@ form.addEventListener('submit', async function(e) {
     try {
         const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgbbFormData });
         const imgbbResult = await imgbbResponse.json();
-        if (!imgbbResult.success) throw new Error(imgbbResult.data.error.message || 'ImgBB upload failed');
+        if (!imgbbResult.success) throw new Error(imgbbResult.data?.error?.message || 'ImgBB upload failed');
         
         showToast('Saving data...', 'info');
         
-        const sheetFormData = new URLSearchParams(); // Use URLSearchParams for reliability
+        const sheetFormData = new URLSearchParams();
         sheetFormData.append('nrc', form.nrc.value);
         sheetFormData.append('name', form.name.value);
+        sheetFormData.append('phone', form.phone.value);
         sheetFormData.append('submissiondate', form.submissionDate.value);
-        sheetFormData.append('status', "စီစစ်ဆဲ"); // Default status
-        sheetFormData.append('imageUrl', imgbbResult.data.url);
-        sheetFormData.append('correctionsdata', correctionsJSON);
+        sheetFormData.append('status', "စီစစ်ဆဲ");
+        sheetFormData.append('imageurl', imgbbResult.data.url);
+        sheetFormData.append('correctionsdata', JSON.stringify(corrections));
         
         const sheetResponse = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: sheetFormData });
         const sheetResult = await sheetResponse.json();
-        if (sheetResult.result !== 'success') throw new Error(sheetResult.message || 'Failed to save to Google Sheet.');
+        if (sheetResult.result !== 'success') throw new Error(sheetResult.message);
 
         showToast('Record created successfully!', 'success');
         form.reset();
         correctionsContainer.innerHTML = '';
         addCorrectionPair();
-        loadAndDisplayRecords(true); // Force refresh dashboard data
+        document.getElementById('submissionDate').valueAsDate = new Date();
+        loadAndDisplayRecords(true);
 
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
@@ -105,7 +106,7 @@ async function loadAndDisplayRecords(forceRefresh = false) {
         const res = await fetch(GOOGLE_SCRIPT_URL);
         if (!res.ok) throw new Error('Network response was not ok.');
         const data = await res.json();
-        cachedData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl })); // Normalize image URL key
+        cachedData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl }));
         populateFiltersAndRender();
     } catch(err) {
         recordList.innerHTML = `<p>Error loading records: ${err.message}</p>`;
@@ -113,10 +114,12 @@ async function loadAndDisplayRecords(forceRefresh = false) {
 }
 
 function populateFiltersAndRender() {
-    const months = new Set(cachedData.map(r => new Date(r.submissiondate).toLocaleString('en-US', { month: 'long', year: 'numeric' })));
-    monthFilterEl.innerHTML = '<option value="all">All Months</option>';
-    months.forEach(m => monthFilterEl.innerHTML += `<option value="${m}">${m}</option>`);
-    monthFilterEl.value = currentMonthFilter;
+    const monthFilter = document.getElementById('monthFilter');
+    const months = [...new Set(cachedData.map(r => new Date(r.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' })))];
+    monthFilter.innerHTML = '<option value="all">လအားလုံး</option>';
+    months.forEach(m => monthFilter.innerHTML += `<option value="${m}">${m}</option>`);
+    monthFilter.value = currentMonthFilter;
+    
     renderFilteredRecords();
 }
 
@@ -124,7 +127,7 @@ function renderFilteredRecords() {
     const sortedData = cachedData.slice().sort((a, b) => b.id - a.id);
     const filteredData = sortedData.filter(record => {
         const statusMatch = currentStatusFilter === 'all' || record.status === currentStatusFilter;
-        const recordMonth = new Date(record.submissiondate).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const recordMonth = new Date(record.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' });
         const monthMatch = currentMonthFilter === 'all' || recordMonth === currentMonthFilter;
         return statusMatch && monthMatch;
     });
@@ -132,7 +135,7 @@ function renderFilteredRecords() {
     recordList.innerHTML = '';
     recordCountEl.textContent = filteredData.length;
     if (filteredData.length === 0) {
-        recordList.innerHTML = '<p>No matching records found.</p>';
+        recordList.innerHTML = '<p style="text-align: center; padding: 2rem;">No matching records found.</p>';
     } else {
         filteredData.forEach(renderRecordCard);
     }
@@ -141,8 +144,14 @@ function renderFilteredRecords() {
 function renderRecordCard(record) {
     const card = document.createElement('div');
     card.className = 'record-card';
-    const statusClasses = { 'စီစစ်ဆဲ': 'status-pending', 'အတည်ပြုပြီး': 'status-approved' };
+    const statusClasses = { 'စီစစ်ဆဲ': 'status-pending', 'အတည်ပြုပြီး': 'status-approved', 'ပယ်ဖျက်သည်': 'status-rejected' };
     const statusClass = statusClasses[record.status] || '';
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const submissionDate = new Date(record.submissiondate); submissionDate.setHours(0,0,0,0);
+    const dayDiff = Math.round((today - submissionDate) / (1000 * 3600 * 24));
+    const daysSinceText = `(${dayDiff} ရက် ကြာပြီ)`;
+    const overdueClass = (dayDiff > 3 && record.status === 'စီစစ်ဆဲ') ? 'overdue' : '';
 
     let correctionsHTML = '';
     if (record.correctionsdata) {
@@ -157,18 +166,20 @@ function renderRecordCard(record) {
     let actionsHTML = `<button class="action-btn delete-btn" onclick="deleteRecord('${record.id}')">ဖျက်ရန်</button>`;
     if (record.status === 'စီစစ်ဆဲ') {
         actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'အတည်ပြုပြီး')">အတည်ပြုရန်</button>`;
+        actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'ပယ်ဖျက်သည်')">ပယ်ဖျက်ရန်</button>`;
     }
 
     card.innerHTML = `
         <div class="record-card-content">
             <h2>${record.nrc}</h2>
             <div class="record-property"><strong>အမည်:</strong><span>${record.name}</span></div>
-            <div class="record-property"><strong>တင်သွင်းရက်:</strong><span>${new Date(record.submissiondate).toLocaleDateString()}</span></div>
+            <div class="record-property"><strong>ဖုန်း:</strong><span>${record.phone || 'N/A'}</span></div>
+            <div class="record-property"><strong class="${overdueClass}">တင်သွင်းရက်:</strong><span>${submissionDate.toLocaleDateString('en-GB')} ${daysSinceText}</span></div>
             <div class="record-property"><strong>အခြေအနေ:</strong><span><span class="status-tag ${statusClass}">${record.status}</span></span></div>
             ${correctionsHTML}
             <div class="card-actions">${actionsHTML}</div>
         </div>
-        ${record.imageurl ? `<img src="${record.imageurl}" alt="Record Photo" class="record-image">` : ''}
+        ${record.imageurl ? `<img src="${record.imageurl}" alt="Record Photo" class="record-image" loading="lazy">` : ''}
     `;
     recordList.appendChild(card);
 }
@@ -189,6 +200,7 @@ monthFilterEl.addEventListener('change', e => {
 
 // --- RECORD ACTIONS (UPDATE/DELETE) ---
 async function changeStatus(id, newStatus) {
+    showToast('Updating status...', 'info');
     const formData = new URLSearchParams({ action: 'updateStatus', id, newStatus });
     try {
         const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
@@ -205,6 +217,7 @@ async function changeStatus(id, newStatus) {
 
 async function deleteRecord(id) {
     if (!confirm('ဤမှတ်တမ်းကို အမှန်တကယ် ဖျက်သိမ်းလိုပါသလား?')) return;
+    showToast('Deleting record...', 'info');
     const formData = new URLSearchParams({ action: 'delete', id });
     try {
         const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
