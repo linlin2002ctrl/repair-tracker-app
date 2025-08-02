@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ပြင်ဆင်မှု မှတ်တမ်း (Form)</title>
+    <title>ပြင်ဆင်မှု မှတ်တမ်း</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,15 +11,15 @@
     <div class="container">
         <header>
             <h1>ပြင်ဆင်ခွင့် တင်ရန်</h1>
-            <p>လိုအပ်သော အချက်အလက်များကို ဖြည့်စွက်ပါ</p>
+            <p>လိုအပ်သောအချက်အလက်များကို ဖြည့်စွက်ပါ</p>
         </header>
         
-        <!-- Navigation to Dashboard -->
-        <div class="nav-container">
-            <a href="dashboard.html" class="nav-link">Dashboard သို့ သွားရန်</a>
-        </div>
-
         <form id="repairForm">
+            <!-- Form groups remain the same -->
+            <div class="form-group">
+                <label for="name">အမည်</label>
+                <input type="text" id="name" name="name" required>
+            </div>
             <div class="form-group">
                 <label for="nrc">နိုင်ငံသားကဒ်နံပါတ်</label>
                 <input type="text" id="nrc" name="nrc" required>
@@ -33,24 +33,8 @@
                 <input type="date" id="submissionDate" name="submissiondate" required>
             </div>
             <div class="form-group">
-                <label for="correctionType">ပြင်ဆင်သည့်အရာ</label>
-                <select id="correctionType" name="correctiontype" required>
-                    <option value="ဖခင်လွဲ">ဖခင်လွဲ</option>
-                    <option value="မိခင်လွဲ">မိခင်လွဲ</option>
-                    <option value="မွေးရက်လွဲ">မွေးရက်လွဲ</option>
-                    <option value="လူမျိုးလွဲ">လူမျိုးလွဲ</option>
-                    <option value="အမည်လွဲ">အမည်လွဲ</option>
-                    <option value="ပြည်ပထွက်ခွာ">ပြည်ပထွက်ခွာ</option>
-                    <option value="သေဆုံး">သေဆုံး</option>
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="machineID">ပြင်ဆင်သည့်စက်</label>
-                <select id="machineID" name="machineid" required>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                </select>
+                <input type="text" id="machineID" name="machineid" placeholder="ဥပမာ - EK01" required>
             </div>
             <div class="form-group">
                 <label for="status">အခြေအနေ</label>
@@ -62,7 +46,60 @@
             </div>
             <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
         </form>
+
+        <div class="divider"></div>
+
+        <header>
+            <h2>တင်သွင်းထားသော စာရင်းများ</h2>
+        </header>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Data များ ရယူနေပါသည်...</p>
+        </div>
+        <div id="recordList">
+            <!-- Data cards will be loaded here -->
+        </div>
     </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h2>အချက်အလက် ပြင်ဆင်ရန်</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId" name="id">
+                <input type="hidden" name="action" value="update">
+
+                <div class="form-group">
+                    <label for="editName">အမည်</label>
+                    <input type="text" id="editName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="editNrc">နိုင်ငံသားကဒ်နံပါတ်</label>
+                    <input type="text" id="editNrc" name="nrc" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPhone">ဖုန်းနံပါတ်</label>
+                    <input type="tel" id="editPhone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="editMachineID">ပြင်ဆင်သည့်စက်</label>
+                    <input type="text" id="editMachineID" name="machineid" required>
+                </div>
+                <div class="form-group">
+                    <label for="editStatus">အခြေအနေ</label>
+                    <select id="editStatus" name="status" required>
+                        <option value="စီစစ်ဆဲ">စီစစ်ဆဲ</option>
+                        <option value="အတည်ပြုပြီး">အတည်ပြုပြီး</option>
+                        <option value="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</option>
+                    </select>
+                </div>
+                <button type="submit" id="updateButton">သိမ်းဆည်းမည်</button>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
