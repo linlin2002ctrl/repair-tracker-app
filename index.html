@@ -21,6 +21,8 @@
                     <h3>အထွေထွေ အချက်အလက်</h3>
                     <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" id="nrc" name="nrc" required></div>
                     <div class="form-group"><label>အမည်</label><input type="text" id="name" name="name" required></div>
+                    <!-- Phone Number Field Added Here -->
+                    <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" id="phone" name="phone"></div>
                     <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" id="submissionDate" name="submissiondate" required></div>
                 </div>
                 <div class="form-section">
@@ -30,7 +32,8 @@
                 </div>
                 <div class="form-section">
                     <h3>သက်ဆိုင်ရာ ဓာတ်ပုံ</h3>
-                    <div class="form-group"><input type="file" id="photoInput" name="image" accept="image/*, .jpg, .jpeg" required></div>
+                    <!-- Accept attribute updated for more flexibility -->
+                    <div class="form-group"><input type="file" id="photoInput" name="image" accept="image/png, image/jpeg, image/jpg" required></div>
                 </div>
                 <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
             </form>
@@ -49,6 +52,8 @@
                         <button class="status-filter-btn active" data-filter="all">All</button>
                         <button class="status-filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
                         <button class="status-filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
+                        <!-- Rejected button added -->
+                        <button class="status-filter-btn" data-filter="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</button>
                     </div>
                 </div>
             </header>
@@ -56,9 +61,7 @@
         </main>
     </div>
     
-    <!-- Toast Notification Container -->
     <div id="toastContainer"></div>
-
     <script src="script.js"></script>
 </body>
 </html>
