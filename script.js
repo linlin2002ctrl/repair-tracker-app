@@ -1,4 +1,5 @@
-const SCRIPT_URL = 'သင်၏_WEB_APP_URL_ကို_အရင်အတိုင်းထားပါ';
+// Google Apps Script URL has been updated with the one you provided.
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec';
 
 const form = document.getElementById('repairForm');
 const submitButton = document.getElementById('submitButton');
