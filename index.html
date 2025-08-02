@@ -14,16 +14,14 @@
             <button id="dashboardViewBtn" class="nav-btn">Dashboard</button>
         </nav>
 
-        <!-- View 1: Data Entry Form -->
         <main id="formView" class="view active-view">
              <form id="repairForm">
                 <div class="form-section">
                     <h3>အထွေထွေ အချက်အလက်</h3>
-                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" id="nrc" name="nrc" required></div>
-                    <div class="form-group"><label>အမည်</label><input type="text" id="name" name="name" required></div>
-                    <!-- Phone Number Field Added Here -->
-                    <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" id="phone" name="phone"></div>
-                    <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" id="submissionDate" name="submissiondate" required></div>
+                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" name="nrc" required></div>
+                    <div class="form-group"><label>အမည်</label><input type="text" name="name" required></div>
+                    <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" name="phone"></div>
+                    <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" name="submissiondate" required></div>
                 </div>
                 <div class="form-section">
                     <h3>ပြင်ဆင်ရန် လွဲချက်များ</h3>
@@ -32,27 +30,21 @@
                 </div>
                 <div class="form-section">
                     <h3>သက်ဆိုင်ရာ ဓာတ်ပုံ</h3>
-                    <!-- Accept attribute updated for more flexibility -->
-                    <div class="form-group"><input type="file" id="photoInput" name="image" accept="image/png, image/jpeg, image/jpg" required></div>
+                    <div class="form-group"><input type="file" name="image" accept="image/png, image/jpeg, image/jpg" required></div>
                 </div>
                 <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
             </form>
         </main>
 
-        <!-- View 2: Dashboard -->
         <main id="dashboardView" class="view">
             <header class="dashboard-header">
                 <h2><span id="recordCount">0</span> မှတ်တမ်းများ</h2>
                 <div class="filters">
-                    <div class="filter-group">
-                        <label for="monthFilter">လအလိုက် စစ်ရန်</label>
-                        <select id="monthFilter"></select>
-                    </div>
-                     <div class="filter-group-status">
+                    <div class="filter-group"><label for="monthFilter">လအလိုက် စစ်ရန်</label><select id="monthFilter"></select></div>
+                    <div class="filter-group-status">
                         <button class="status-filter-btn active" data-filter="all">All</button>
                         <button class="status-filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
                         <button class="status-filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
-                        <!-- Rejected button added -->
                         <button class="status-filter-btn" data-filter="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</button>
                     </div>
                 </div>
