@@ -1,5 +1,11 @@
-// Google Apps Script URL has been updated with the one you provided.
+// This URL should remain unchanged from your last working version
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec';
+
+// --- Global DOM Elements ---
+const formView = document.getElementById('formView');
+const dashboardView = document.getElementById('dashboardView');
+const formViewBtn = document.getElementById('formViewBtn');
+const dashboardViewBtn = document.getElementById('dashboardViewBtn');
 
 const form = document.getElementById('repairForm');
 const submitButton = document.getElementById('submitButton');
@@ -9,136 +15,154 @@ const loadingDiv = document.getElementById('loading');
 const editModal = document.getElementById('editModal');
 const editForm = document.getElementById('editForm');
 const closeModalButton = document.querySelector('.close-button');
+const filterContainer = document.querySelector('.filter-container');
 
-// Set today's date as default for the new entry form
-document.getElementById('submissionDate').valueAsDate = new Date();
+let cachedData = []; // Cache data to avoid repeated fetches
+let currentFilter = 'all'; // Default filter
 
 // --- EVENT LISTENERS ---
 
-// Handle NEW record submission
-form.addEventListener('submit', function(e) {
+// Navigation
+formViewBtn.addEventListener('click', () => switchView('form'));
+dashboardViewBtn.addEventListener('click', () => switchView('dashboard'));
+
+// Filtering
+filterContainer.addEventListener('click', (e) => {
+    if (e.target.matches('.filter-btn')) {
+        currentFilter = e.target.dataset.filter;
+        document.querySelector('.filter-btn.active').classList.remove('active');
+        e.target.classList.add('active');
+        renderData(cachedData);
+    }
+});
+
+// Form Submissions
+form.addEventListener('submit', handleCreate);
+editForm.addEventListener('submit', handleUpdate);
+
+// Record Card Actions (Edit/Delete)
+recordList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('edit-btn')) openEditModal(e.target.dataset.id);
+    if (e.target.classList.contains('delete-btn')) handleDelete(e.target.dataset.id);
+});
+
+// Modal Closing
+closeModalButton.addEventListener('click', closeModal);
+window.addEventListener('click', (e) => { if (e.target === editModal) closeModal(); });
+
+
+// --- CORE FUNCTIONS ---
+
+// CREATE
+function handleCreate(e) {
     e.preventDefault();
     submitButton.disabled = true;
     submitButton.textContent = 'တင်နေသည်...';
-
     fetch(SCRIPT_URL, { method: 'POST', body: new FormData(form) })
         .then(res => res.json())
         .then(data => {
-            if(data.result === 'success'){
-                alert('မှတ်တမ်းတင်ခြင်း အောင်မြင်ပါသည်။');
+            if (data.result === 'success') {
+                showToast('မှတ်တမ်းတင်ခြင်း အောင်မြင်ပါသည်။', 'success');
                 form.reset();
                 document.getElementById('submissionDate').valueAsDate = new Date();
-                fetchData(); // Refresh the list
-            } else {
-                throw new Error(data.error || 'Unknown error');
-            }
+                fetchData(true); // Force refresh
+            } else { throw new Error(data.error); }
         })
-        .catch(error => alert(`Error: မှတ်တမ်းတင်ရန် အခက်အခဲရှိနေပါသည်။\n${error.message}`))
+        .catch(error => showToast(`Error: ${error.message}`, 'error'))
         .finally(() => {
             submitButton.disabled = false;
             submitButton.textContent = 'မှတ်တမ်းတင်မည်';
         });
-});
+}
 
-// Handle clicks on EDIT and DELETE buttons
-recordList.addEventListener('click', function(e) {
-    if (e.target.classList.contains('edit-btn')) {
-        const recordId = e.target.dataset.id;
-        openEditModal(recordId);
+// READ
+async function fetchData(forceRefresh = false) {
+    if (cachedData.length > 0 && !forceRefresh) {
+        renderData(cachedData);
+        return;
     }
-    if (e.target.classList.contains('delete-btn')) {
-        const recordId = e.target.dataset.id;
-        handleDelete(recordId);
+    loadingDiv.style.display = 'block';
+    recordList.innerHTML = '';
+    try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        cachedData = await response.json();
+        renderData(cachedData);
+    } catch (error) {
+        loadingDiv.innerHTML = `<p>Data ရယူရာတွင် အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်။ (${error.message})</p>`;
+    } finally {
+        loadingDiv.style.display = 'none';
     }
-});
+}
 
-// Handle UPDATE record submission from modal
-editForm.addEventListener('submit', function(e) {
+// UPDATE
+function handleUpdate(e) {
     e.preventDefault();
     const updateButton = document.getElementById('updateButton');
     updateButton.disabled = true;
     updateButton.textContent = 'သိမ်းဆည်းနေသည်...';
-    
     fetch(SCRIPT_URL, { method: 'POST', body: new FormData(editForm) })
         .then(res => res.json())
         .then(data => {
-            if(data.result === 'success'){
-                alert('ပြင်ဆင်ခြင်း အောင်မြင်ပါသည်။');
+            if (data.result === 'success') {
+                showToast('ပြင်ဆင်ခြင်း အောင်မြင်ပါသည်။', 'success');
                 closeModal();
-                fetchData();
-            } else {
-                 throw new Error(data.message || 'Update failed');
-            }
+                fetchData(true); // Force refresh
+            } else { throw new Error(data.message); }
         })
-        .catch(error => alert(`Error: ပြင်ဆင်ရန် အခက်အခဲရှိနေပါသည်။\n${error.message}`))
+        .catch(error => showToast(`Error: ${error.message}`, 'error'))
         .finally(() => {
             updateButton.disabled = false;
             updateButton.textContent = 'သိမ်းဆည်းမည်';
         });
-});
+}
 
-// Close modal events
-closeModalButton.addEventListener('click', closeModal);
-window.addEventListener('click', function(e) {
-    if (e.target === editModal) {
-        closeModal();
-    }
-});
-
-
-// --- FUNCTIONS ---
-
-let cachedData = []; // To store data for editing
-
-// Function to fetch and display ALL data
-async function fetchData() {
-    loadingDiv.style.display = 'block';
-    recordList.innerHTML = '';
-
-    try {
-        const response = await fetch(SCRIPT_URL);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        cachedData = await response.json();
-        
-        loadingDiv.style.display = 'none';
-        if (cachedData.length === 0) {
-            recordList.innerHTML = '<p style="text-align:center;">မှတ်တမ်းများ မရှိသေးပါ</p>';
-            return;
-        }
-
-        // Reverse to show latest entry first
-        cachedData.slice().reverse().forEach(renderRecordCard);
-
-    } catch (error) {
-        loadingDiv.innerHTML = `<p>Data ရယူရာတွင် အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်။ (${error.message})</p>`;
+// DELETE
+function handleDelete(id) {
+    if (confirm('ဤမှတ်တမ်းကို အမှန်တကယ် ဖျက်သိမ်းလိုပါသလား?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch(SCRIPT_URL, { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    showToast('ဖျက်သိမ်းခြင်း အောင်မြင်ပါသည်။', 'success');
+                    fetchData(true); // Force refresh
+                } else { throw new Error(data.message); }
+            })
+            .catch(error => showToast(`Error: ${error.message}`, 'error'));
     }
 }
 
-// Function to render a single record card
+// --- UI & HELPER FUNCTIONS ---
+
+// Renders data to the list based on the current filter
+function renderData(data) {
+    recordList.innerHTML = '';
+    const filteredData = data.filter(record => {
+        if (currentFilter === 'all') return true;
+        return record.status === currentFilter;
+    });
+
+    if (filteredData.length === 0) {
+        recordList.innerHTML = `<p style="text-align:center;">"${currentFilter}" နှင့် ကိုက်ညီသော မှတ်တမ်းများ မရှိသေးပါ။</p>`;
+        return;
+    }
+    
+    filteredData.slice().reverse().forEach(renderRecordCard);
+}
+
+// Renders a single record card
 function renderRecordCard(record) {
     const card = document.createElement('div');
     card.className = 'record-card';
-    card.dataset.id = record.id;
-
     const statusClass = { 'စီစစ်ဆဲ': 'status-pending', 'အတည်ပြုပြီး': 'status-approved', 'ပယ်ဖျက်သည်': 'status-rejected' }[record.status] || '';
     card.classList.add(statusClass);
 
-    // Calculate days since submission
-    const submissionDate = new Date(record.submissiondate);
-    const today = new Date();
-    today.setHours(0,0,0,0); // Normalize today's date
-    submissionDate.setHours(0,0,0,0); // Normalize submission date
-    const dayDiff = Math.round((today - submissionDate) / (1000 * 60 * 60 * 24));
+    const dayDiff = Math.round((new Date() - new Date(record.submissiondate)) / (1000 * 3600 * 24));
     const daysSinceText = dayDiff >= 0 ? `(တင်ထားသည်မှာ ${dayDiff} ရက် ရှိပြီ)` : '';
-
-    // Overdue Alert
-    let overdueAlert = '';
-    if (record.status === 'စီစစ်ဆဲ' && dayDiff > 3) {
-        overdueAlert = `<div class="overdue-alert">ဖုန်းဆက်ရန်လိုအပ်ပါသည် (${dayDiff} ရက် ကျော်နေပါပြီ)</div>`;
-    }
-
+    let overdueAlert = (record.status === 'စီစစ်ဆဲ' && dayDiff > 3) ? `<div class="overdue-alert">ဖုန်းဆက်ရန်လိုအပ်ပါသည် (${dayDiff} ရက် ကျော်နေပါပြီ)</div>` : '';
     const displayDate = new Date(record.submissiondate).toLocaleDateString('en-GB');
 
     card.innerHTML = `
@@ -157,50 +181,63 @@ function renderRecordCard(record) {
     recordList.appendChild(card);
 }
 
-// Function to handle DELETE request
-function handleDelete(id) {
-    if (confirm('ဤမှတ်တမ်းကို အမှန်တကယ် ဖျက်သိမ်းလိုပါသလား?')) {
-        const formData = new FormData();
-        formData.append('action', 'delete');
-        formData.append('id', id);
-
-        fetch(SCRIPT_URL, { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.result === 'success') {
-                    alert('ဖျက်သိမ်းခြင်း အောင်မြင်ပါသည်။');
-                    fetchData(); // Refresh list
-                } else {
-                    throw new Error(data.message || 'Delete failed');
-                }
-            })
-            .catch(error => alert(`Error: ဖျက်သိမ်းရန် အခက်အခဲရှိနေပါသည်။\n${error.message}`));
+// View switching logic
+function switchView(viewName) {
+    if (viewName === 'form') {
+        formView.classList.add('active-view');
+        dashboardView.classList.remove('active-view');
+        formViewBtn.classList.add('active');
+        dashboardViewBtn.classList.remove('active');
+    } else {
+        dashboardView.classList.add('active-view');
+        formView.classList.remove('active-view');
+        dashboardViewBtn.classList.add('active');
+        formViewBtn.classList.remove('active');
+        fetchData(); // Fetch data when switching to dashboard
     }
 }
 
-// --- MODAL FUNCTIONS ---
-
+// Modal control
 function openEditModal(id) {
-    const recordToEdit = cachedData.find(record => record.id.toString() === id.toString());
-    if (!recordToEdit) {
-        alert('ပြင်ဆင်ရန် မှတ်တမ်းကို ရှာမတွေ့ပါ။');
+    const record = cachedData.find(r => r.id.toString() === id.toString());
+    if (!record) {
+        showToast('မှတ်တမ်း ရှာမတွေ့ပါ', 'error');
         return;
     }
-
-    // Populate modal form with existing data
-    document.getElementById('editId').value = recordToEdit.id;
-    document.getElementById('editName').value = recordToEdit.name;
-    document.getElementById('editNrc').value = recordToEdit.nrc;
-    document.getElementById('editPhone').value = recordToEdit.phone;
-    document.getElementById('editMachineID').value = recordToEdit.machineid;
-    document.getElementById('editStatus').value = recordToEdit.status;
-    
+    document.getElementById('editId').value = record.id;
+    document.getElementById('editName').value = record.name;
+    document.getElementById('editNrc').value = record.nrc;
+    document.getElementById('editPhone').value = record.phone;
+    document.getElementById('editMachineID').value = record.machineid;
+    document.getElementById('editStatus').value = record.status;
     editModal.style.display = 'block';
 }
-
 function closeModal() {
     editModal.style.display = 'none';
 }
 
-// --- INITIAL LOAD ---
-document.addEventListener('DOMContentLoaded', fetchData);
+// Toast notification
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+
+// --- INITIALIZATION ---
+function initialize() {
+    document.getElementById('submissionDate').valueAsDate = new Date();
+    // Default to form view on load
+    switchView('form');
+}
+
+document.addEventListener('DOMContentLoaded', initialize);
