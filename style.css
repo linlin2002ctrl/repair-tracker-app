@@ -1,0 +1,163 @@
+/* Basic Setup and Mobile-First Design */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #f8f9fa;
+    --dark-color: #343a40;
+    --light-color: #ffffff;
+    --pending-color: #ffc107;
+    --approved-color: #28a745;
+    --rejected-color: #dc3545;
+    --overdue-color: #fff3cd;
+    --border-color: #dee2e6;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--secondary-color);
+    color: var(--dark-color);
+    margin: 0;
+    padding: 1rem;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: var(--light-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+header h1 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+header h2 {
+    color: var(--dark-color);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #a0c7ff;
+    cursor: not-allowed;
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 2rem 0;
+}
+
+#loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.record-card {
+    background: var(--light-color);
+    border: 1px solid var(--border-color);
+    border-left-width: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.record-card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.record-card p {
+    margin: 0.25rem 0;
+    color: #555;
+}
+
+.record-card .status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    color: var(--light-color);
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Status Colors */
+.status-pending { border-left-color: var(--pending-color); }
+.status-pending .status { background-color: var(--pending-color); color: #333; }
+
+.status-approved { border-left-color: var(--approved-color); }
+.status-approved .status { background-color: var(--approved-color); }
+
+.status-rejected { border-left-color: var(--rejected-color); }
+.status-rejected .status { background-color: var(--rejected-color); }
+
+/* Overdue Alert */
+.overdue-alert {
+    background-color: var(--overdue-color);
+    border: 1px solid var(--pending-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    font-weight: bold;
+    color: #856404;
+    text-align: center;
+}
+
+/* Responsive for larger screens */
+@media (min-width: 600px) {
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+}
