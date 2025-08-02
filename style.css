@@ -1,169 +1,59 @@
-:root { /* ... existing variables ... */ --rejected-color: #ea4335; }
-/* ... existing styles ... */
-/* Add styles for Rejected status and Overdue alert */
-.status-rejected { background-color: var(--rejected-color); }
+:root { 
+    --primary-color: #2f5fda; 
+    --border-color: #e0e0e0; 
+    --bg-color: #f7f7f7; 
+    --text-color: #333; 
+    --text-light: #777;
+    --pending-color: #fbbc05;
+    --approved-color: #34a853;
+    --rejected-color: #ea4335;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); }
+.app-container { max-width: 800px; margin: 0 auto; padding: 1rem; }
+.app-nav { display: flex; background: #fff; border-radius: 8px; margin-bottom: 1.5rem; padding: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.nav-btn { flex: 1; padding: 0.8rem; border: none; background: transparent; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+.nav-btn.active { background-color: var(--primary-color); color: white; }
+.view { display: none; }
+.view.active-view { display: block; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+form { background-color: white; padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); }
+.form-section { margin-bottom: 2rem; }
+.form-section h3 { border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+.form-group { margin-bottom: 1rem; }
+label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-light); }
+input, select { width: 100%; padding: 0.75rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+button[type="submit"] { width: 100%; padding: 0.8rem; background-color: var(--primary-color); color: white; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer; transition: background-color 0.2s; }
+button:disabled { background-color: #a9bceb; cursor: not-allowed; }
+.secondary-btn { background: none; border: 1px dashed #ccc; padding: 0.5rem; width: 100%; border-radius: 4px; cursor: pointer; }
+.correction-pair { display: flex; gap: 1rem; margin-bottom: 0.5rem; align-items: center; }
+.correction-pair input { flex: 1; }
+.remove-btn { background: none; border: none; font-size: 1.5rem; color: #e53935; cursor: pointer; padding: 0 0.5rem; }
+.dashboard-header { background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; }
+.filters { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.filter-group-status { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.status-filter-btn { padding: 0.5rem 1rem; border: 1px solid var(--border-color); background: #f9f9f9; border-radius: 20px; cursor: pointer; font-weight: 500; }
+.status-filter-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+.record-card { background-color: white; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1.5rem; }
+.record-card-content { padding: 1.5rem; }
+.record-card h2 { font-size: 1.5rem; margin: 0 0 1.5rem 0; }
+.record-property { display: grid; grid-template-columns: 120px 1fr; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0; }
+.record-property:last-of-type { border-bottom: none; }
+.record-property strong { color: var(--text-light); font-weight: 500; }
 .record-property strong.overdue { color: var(--rejected-color); font-weight: bold; }
-/* ... rest of the styles are the same ... */```
-*မှတ်ချက်: `style.css` မှာ အပြောင်းအလဲ အနည်းငယ်သာရှိတဲ့အတွက်၊ အဟောင်းကိုဆက်သုံးပြီး အပေါ်က `status-rejected` နဲ့ `overdue` style နှစ်ကြောင်းကို ထပ်ထည့်လိုက်ရုံပါပဲ။*
-
-##### **`script.js` (အပြီးသတ် Version)**
-
-```javascript
-// --- CONFIGURATION ---
-const GOOGLE_SCRIPT_URL = 'သင်၏_APPS_SCRIPT_URL_အသစ်ကိုထည့်ပါ'; 
-const IMGBB_API_KEY = 'သင်၏_IMGBB_API_KEY_ကိုထည့်ပါ';
-
-// --- DOM ELEMENTS & STATE (No changes needed here) ---
-// ... (All existing DOM element variables)
-let cachedData = [];
-let currentStatusFilter = 'all';
-let currentMonthFilter = 'all';
-
-// --- VIEW SWITCHING (No changes needed here) ---
-// ... (Existing switchView function)
-
-// --- DYNAMIC CORRECTIONS LOGIC (No changes needed here) ---
-// ... (Existing addCorrectionPair function and its event listener)
-
-// --- FORM SUBMISSION (Updated to include Phone) ---
-form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    submitButton.disabled = true;
-    showToast('Uploading photo...', 'info');
-
-    const corrections = Array.from(document.querySelectorAll('.correction-pair')).map(pair => ({
-        mistake: pair.querySelector('.mistake-input').value,
-        correction: pair.querySelector('.correction-input').value
-    })).filter(c => c.mistake && c.correction);
-
-    const photoFile = form.photoInput.files[0];
-    const imgbbFormData = new FormData();
-    imgbbFormData.append('image', photoFile);
-
-    try {
-        const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgbbFormData });
-        const imgbbResult = await imgbbResponse.json();
-        if (!imgbbResult.success) throw new Error(imgbbResult.data?.error?.message || 'ImgBB upload failed');
-        
-        showToast('Saving data...', 'info');
-        
-        const sheetFormData = new URLSearchParams();
-        sheetFormData.append('nrc', form.nrc.value);
-        sheetFormData.append('name', form.name.value);
-        sheetFormData.append('phone', form.phone.value); // Sending phone number
-        sheetFormData.append('submissiondate', form.submissionDate.value);
-        sheetFormData.append('status', "စီစစ်ဆဲ");
-        sheetFormData.append('imageurl', imgbbResult.data.url); // Standardized to lowercase 'imageurl'
-        sheetFormData.append('correctionsdata', JSON.stringify(corrections));
-        
-        const sheetResponse = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: sheetFormData });
-        const sheetResult = await sheetResponse.json();
-        if (sheetResult.result !== 'success') throw new Error(sheetResult.message);
-
-        showToast('Record created successfully!', 'success');
-        form.reset();
-        correctionsContainer.innerHTML = '';
-        addCorrectionPair();
-        loadAndDisplayRecords(true);
-
-    } catch (error) {
-        showToast(`Error: ${error.message}`, 'error');
-    } finally {
-        submitButton.disabled = false;
-    }
-});
-
-
-// --- DASHBOARD & DATA RENDERING (Major Updates) ---
-async function loadAndDisplayRecords(forceRefresh = false) {
-    if (cachedData.length > 0 && !forceRefresh) {
-        populateFiltersAndRender();
-        return;
-    }
-    recordList.innerHTML = '<p>Loading records...</p>';
-    try {
-        const res = await fetch(GOOGLE_SCRIPT_URL);
-        const data = await res.json();
-        // **BUG FIX**: Standardize image URL key on client-side
-        cachedData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl }));
-        populateFiltersAndRender();
-    } catch(err) {
-        recordList.innerHTML = `<p>Error loading records: ${err.message}</p>`;
-    }
-}
-
-function populateFiltersAndRender() {
-    // ... (This function remains mostly the same)
-    const monthFilter = document.getElementById('monthFilter');
-    const months = new Set(cachedData.map(r => new Date(r.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' })));
-    monthFilter.innerHTML = '<option value="all">လအားလုံး</option>';
-    months.forEach(m => monthFilter.innerHTML += `<option value="${m}">${m}</option>`);
-    monthFilter.value = currentMonthFilter;
-    
-    renderFilteredRecords();
-}
-
-function renderFilteredRecords() {
-    const sortedData = cachedData.slice().sort((a, b) => b.id - a.id);
-    const filteredData = sortedData.filter(record => {
-        const statusMatch = currentStatusFilter === 'all' || record.status === currentStatusFilter;
-        const recordMonth = new Date(record.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' });
-        const monthMatch = currentMonthFilter === 'all' || recordMonth === currentMonthFilter;
-        return statusMatch && monthMatch;
-    });
-
-    recordList.innerHTML = '';
-    document.getElementById('recordCount').textContent = filteredData.length;
-    if (filteredData.length === 0) {
-        recordList.innerHTML = '<p>No matching records found.</p>';
-    } else {
-        filteredData.forEach(renderRecordCard);
-    }
-}
-
-function renderRecordCard(record) {
-    const card = document.createElement('div');
-    card.className = 'record-card';
-    const statusClasses = { 'စီစစ်ဆဲ': 'status-pending', 'အတည်ပြုပြီး': 'status-approved', 'ပယ်ဖျက်သည်': 'status-rejected' };
-    const statusClass = statusClasses[record.status] || '';
-
-    // Calculate days since submission
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const submissionDate = new Date(record.submissiondate);
-    submissionDate.setHours(0,0,0,0);
-    const dayDiff = Math.round((today - submissionDate) / (1000 * 3600 * 24));
-    const daysSinceText = `(${dayDiff} ရက် ကြာပြီ)`;
-    const overdueClass = (dayDiff > 3 && record.status === 'စီစစ်ဆဲ') ? 'overdue' : '';
-
-    let correctionsHTML = ''; // ... (Existing corrections rendering logic)
-
-    // Action buttons logic updated
-    let actionsHTML = `<button class="action-btn delete-btn" onclick="deleteRecord('${record.id}')">ဖျက်ရန်</button>`;
-    if (record.status === 'စီစစ်ဆဲ') {
-        actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'အတည်ပြုပြီး')">အတည်ပြုရန်</button>`;
-        actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'ပယ်ဖျက်သည်')">ပယ်ဖျက်ရန်</button>`;
-    }
-
-    card.innerHTML = `
-        <div class="record-card-content">
-            <h2>${record.nrc}</h2>
-            <div class="record-property"><strong>အမည်:</strong><span>${record.name}</span></div>
-            <div class="record-property"><strong>ဖုန်း:</strong><span>${record.phone || 'N/A'}</span></div>
-            <div class="record-property"><strong class="${overdueClass}">တင်သွင်းရက်:</strong><span>${submissionDate.toLocaleDateString('en-GB')} ${daysSinceText}</span></div>
-            <div class="record-property"><strong>အခြေအနေ:</strong><span><span class="status-tag ${statusClass}">${record.status}</span></span></div>
-            ${correctionsHTML}
-            <div class="card-actions">${actionsHTML}</div>
-        </div>
-        ${record.imageurl ? `<img src="${record.imageurl}" alt="Record Photo" class="record-image">` : ''}
-    `;
-    recordList.appendChild(card);
-}
-
-// --- FILTER & ACTION EVENT LISTENERS ---
-// ... (Existing filter event listeners)
-// ... (Existing changeStatus and deleteRecord functions)
-// ... (Existing showToast function)
-
-// --- INITIALIZE ---
-// ... (Existing DOMContentLoaded event listener)
+.status-tag { padding: 4px 10px; border-radius: 12px; color: white; font-size: 0.9rem; display: inline-block; }
+.status-pending { background-color: var(--pending-color); }
+.status-approved { background-color: var(--approved-color); }
+.status-rejected { background-color: var(--rejected-color); }
+.corrections-section { margin-top: 1.5rem; }
+.corrections-section h4 { margin-bottom: 0.5rem; }
+.corrections-list { list-style: none; padding-left: 0; }
+.corrections-list li { background: #f0f0f0; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; }
+.record-image { display: block; width: 100%; border-radius: 0 0 8px 8px; border-top: 1px solid var(--border-color); }
+.card-actions { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f0f0f0; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.action-btn { padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; background: #fff; font-weight: 500; }
+.delete-btn { border-color: var(--rejected-color); color: var(--rejected-color); }
+#toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; }
+.toast { background-color: #333; color: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background-color: var(--approved-color); }
+.toast.error { background-color: var(--rejected-color); }
