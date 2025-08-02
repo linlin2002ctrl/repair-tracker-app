@@ -36,13 +36,28 @@ header {
     padding-bottom: 1rem;
 }
 
-header h1 {
+header h1, header h2 {
     margin: 0;
     color: var(--primary-color);
 }
 
-header h2 {
-    color: var(--dark-color);
+/* Navigation Link Styles */
+.nav-container {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.nav-link {
+    display: inline-block;
+    background-color: #6c757d;
+    color: var(--light-color);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+.nav-link:hover {
+    background-color: #5a6268;
 }
 
 .form-group {
@@ -88,11 +103,32 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.divider {
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 2rem 0;
+/* Filter Buttons Styles */
+.filter-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--primary-color);
+    background-color: var(--light-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.filter-btn:hover {
+    background-color: #e2f0ff;
+}
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+
 
 #loading {
     text-align: center;
@@ -131,7 +167,6 @@ button:disabled {
     margin-top: 0.5rem;
 }
 
-/* Status Colors */
 .status-pending { border-left-color: var(--pending-color); }
 .status-pending .status { background-color: var(--pending-color); color: #333; }
 
@@ -141,7 +176,6 @@ button:disabled {
 .status-rejected { border-left-color: var(--rejected-color); }
 .status-rejected .status { background-color: var(--rejected-color); }
 
-/* Overdue Alert */
 .overdue-alert {
     background-color: var(--overdue-color);
     border: 1px solid var(--pending-color);
@@ -151,13 +185,4 @@ button:disabled {
     font-weight: bold;
     color: #856404;
     text-align: center;
-}
-
-/* Responsive for larger screens */
-@media (min-width: 600px) {
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
 }
