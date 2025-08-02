@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- ဒီနေရာမှာ သင့် App နာမည်ကို ပြောင်းနိုင်ပါတယ် -->
-    <title>ပြင်ဆင်မှု မှတ်တမ်း</title>
-    <!-- ဒီနေရာမှာ သင့် App Icon ကို ထည့်ရပါမယ် -->
+    <title>ပြင်ဆင်မှု မှတ်တမ်း (Form)</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,14 +11,15 @@
     <div class="container">
         <header>
             <h1>ပြင်ဆင်ခွင့် တင်ရန်</h1>
-            <p>လိုအပ်သောအချက်အလက်များကို ဖြည့်စွက်ပါ</p>
+            <p>လိုအပ်သော အချက်အလက်များကို ဖြည့်စွက်ပါ</p>
         </header>
         
+        <!-- Navigation to Dashboard -->
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-link">Dashboard သို့ သွားရန်</a>
+        </div>
+
         <form id="repairForm">
-            <div class="form-group">
-                <label for="name">အမည်</label>
-                <input type="text" id="name" name="name" required>
-            </div>
             <div class="form-group">
                 <label for="nrc">နိုင်ငံသားကဒ်နံပါတ်</label>
                 <input type="text" id="nrc" name="nrc" required>
@@ -34,8 +33,24 @@
                 <input type="date" id="submissionDate" name="submissiondate" required>
             </div>
             <div class="form-group">
+                <label for="correctionType">ပြင်ဆင်သည့်အရာ</label>
+                <select id="correctionType" name="correctiontype" required>
+                    <option value="ဖခင်လွဲ">ဖခင်လွဲ</option>
+                    <option value="မိခင်လွဲ">မိခင်လွဲ</option>
+                    <option value="မွေးရက်လွဲ">မွေးရက်လွဲ</option>
+                    <option value="လူမျိုးလွဲ">လူမျိုးလွဲ</option>
+                    <option value="အမည်လွဲ">အမည်လွဲ</option>
+                    <option value="ပြည်ပထွက်ခွာ">ပြည်ပထွက်ခွာ</option>
+                    <option value="သေဆုံး">သေဆုံး</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="machineID">ပြင်ဆင်သည့်စက်</label>
-                <input type="text" id="machineID" name="machineid" placeholder="ဥပမာ - EK01" required>
+                <select id="machineID" name="machineid" required>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="status">အခြေအနေ</label>
@@ -47,20 +62,7 @@
             </div>
             <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
         </form>
-
-        <div class="divider"></div>
-
-        <header>
-            <h2>တင်သွင်းထားသော စာရင်းများ</h2>
-        </header>
-        
-        <div id="loading">Loading Data...</div>
-        <div id="recordList">
-            <!-- Data will be loaded here by JavaScript -->
-        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
-```5.  စာမျက်နှာအောက်ဆုံးက **Commit new file** ကိုနှိပ်ပါ။
