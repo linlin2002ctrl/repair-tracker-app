@@ -1,6 +1,6 @@
-// --- CONFIGURATION (UPDATED WITH YOUR NEW URL) ---
+// --- CONFIGURATION (UPDATED WITH YOUR KEYS) ---
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec'; 
-const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d'; // Your existing key
+const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
 // --- DOM ELEMENTS & STATE ---
 const formView = document.getElementById('formView');
@@ -27,7 +27,7 @@ function switchView(viewName) {
     formViewBtn.classList.toggle('active', viewName === 'form');
     dashboardViewBtn.classList.toggle('active', viewName === 'dashboard');
     if (viewName === 'dashboard') {
-        loadAndDisplayRecords(true); // Always refresh when switching to dashboard
+        loadAndDisplayRecords(true);
     }
 }
 formViewBtn.addEventListener('click', () => switchView('form'));
@@ -54,9 +54,9 @@ form.addEventListener('submit', async function(e) {
     const corrections = Array.from(document.querySelectorAll('.correction-pair')).map(pair => ({
         mistake: pair.querySelector('.mistake-input').value,
         correction: pair.querySelector('.correction-input').value
-    })).filter(c => c.mistake && c.correction);
+    })).filter(c => c.mistake || c.correction);
 
-    const photoFile = form.photoInput.files[0];
+    const photoFile = form.querySelector('[name="image"]').files[0];
     const imgbbFormData = new FormData();
     imgbbFormData.append('image', photoFile);
 
@@ -71,7 +71,7 @@ form.addEventListener('submit', async function(e) {
         sheetFormData.append('nrc', form.nrc.value);
         sheetFormData.append('name', form.name.value);
         sheetFormData.append('phone', form.phone.value);
-        sheetFormData.append('submissiondate', form.submissionDate.value);
+        sheetFormData.append('submissiondate', form.submissiondate.value);
         sheetFormData.append('status', "စီစစ်ဆဲ");
         sheetFormData.append('imageurl', imgbbResult.data.url);
         sheetFormData.append('correctionsdata', JSON.stringify(corrections));
@@ -84,7 +84,7 @@ form.addEventListener('submit', async function(e) {
         form.reset();
         correctionsContainer.innerHTML = '';
         addCorrectionPair();
-        document.getElementById('submissionDate').valueAsDate = new Date();
+        document.querySelector('[name="submissiondate"]').valueAsDate = new Date();
         loadAndDisplayRecords(true);
 
     } catch (error) {
@@ -101,7 +101,7 @@ async function loadAndDisplayRecords(forceRefresh = false) {
         populateFiltersAndRender();
         return;
     }
-    recordList.innerHTML = '<p>Loading records...</p>';
+    recordList.innerHTML = '<p style="text-align:center; padding: 2rem;">Loading records...</p>';
     try {
         const res = await fetch(GOOGLE_SCRIPT_URL);
         if (!res.ok) throw new Error('Network response was not ok.');
@@ -109,16 +109,17 @@ async function loadAndDisplayRecords(forceRefresh = false) {
         cachedData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl }));
         populateFiltersAndRender();
     } catch(err) {
-        recordList.innerHTML = `<p>Error loading records: ${err.message}</p>`;
+        recordList.innerHTML = `<p style="text-align:center; padding: 2rem;">Error loading records: ${err.message}</p>`;
     }
 }
 
 function populateFiltersAndRender() {
     const monthFilter = document.getElementById('monthFilter');
     const months = [...new Set(cachedData.map(r => new Date(r.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' })))];
+    const previousValue = monthFilter.value;
     monthFilter.innerHTML = '<option value="all">လအားလုံး</option>';
     months.forEach(m => monthFilter.innerHTML += `<option value="${m}">${m}</option>`);
-    monthFilter.value = currentMonthFilter;
+    monthFilter.value = previousValue;
     
     renderFilteredRecords();
 }
@@ -154,7 +155,7 @@ function renderRecordCard(record) {
     const overdueClass = (dayDiff > 3 && record.status === 'စီစစ်ဆဲ') ? 'overdue' : '';
 
     let correctionsHTML = '';
-    if (record.correctionsdata) {
+    if (record.correctionsdata && record.correctionsdata.length > 2) { // Check if it's not an empty array "[]"
         try {
             const corrections = JSON.parse(record.correctionsdata);
             if (corrections.length > 0) {
@@ -247,7 +248,7 @@ function showToast(message, type = 'info') {
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('submissionDate').valueAsDate = new Date();
+    document.querySelector('[name="submissiondate"]').valueAsDate = new Date();
     addCorrectionPair();
     switchView('form');
 });
