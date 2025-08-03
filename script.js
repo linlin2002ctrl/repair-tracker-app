@@ -1,4 +1,4 @@
-// --- CONFIGURATION (UPDATED WITH YOUR KEYS) ---
+// --- CONFIGURATION (UPDATED WITH YOUR NEW URL) ---
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec'; 
 const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
@@ -7,14 +7,19 @@ const formView = document.getElementById('formView');
 const dashboardView = document.getElementById('dashboardView');
 const formViewBtn = document.getElementById('formViewBtn');
 const dashboardViewBtn = document.getElementById('dashboardViewBtn');
-const form = document.getElementById('repairForm');
-const submitButton = document.getElementById('submitButton');
-const correctionsContainer = document.getElementById('correctionsContainer');
+const mainForm = document.getElementById('repairForm');
+const submitButton = mainForm.querySelector('#submitButton');
+const mainCorrectionsContainer = document.getElementById('correctionsContainer');
 const addCorrectionBtn = document.getElementById('addCorrectionBtn');
 const recordList = document.getElementById('recordList');
 const recordCountEl = document.getElementById('recordCount');
 const monthFilterEl = document.getElementById('monthFilter');
 const statusFilterContainer = document.querySelector('.filter-group-status');
+const editModal = document.getElementById('editModal');
+const editForm = document.getElementById('editForm');
+const updateButton = document.getElementById('updateButton');
+const addEditCorrectionBtn = document.getElementById('addEditCorrectionBtn');
+const editCorrectionsContainer = document.getElementById('editCorrectionsContainer');
 
 let cachedData = [];
 let currentStatusFilter = 'all';
@@ -35,28 +40,26 @@ dashboardViewBtn.addEventListener('click', () => switchView('dashboard'));
 
 
 // --- DYNAMIC CORRECTIONS LOGIC ---
-function addCorrectionPair() {
+function addCorrectionPair(isEdit = false, data = { mistake: '', correction: '' }) {
+    const container = isEdit ? editCorrectionsContainer : mainCorrectionsContainer;
     const pairDiv = document.createElement('div');
     pairDiv.className = 'correction-pair';
-    pairDiv.innerHTML = `<input type="text" placeholder="လွဲချက်" class="mistake-input"><input type="text" placeholder="အမှန်" class="correction-input"><button type="button" class="remove-btn">×</button>`;
-    correctionsContainer.appendChild(pairDiv);
+    pairDiv.innerHTML = `<input type="text" placeholder="လွဲချက်" class="mistake-input" value="${data.mistake}"><input type="text" placeholder="အမှန်" class="correction-input" value="${data.correction}"><button type="button" class="remove-btn">×</button>`;
+    container.appendChild(pairDiv);
     pairDiv.querySelector('.remove-btn').addEventListener('click', () => pairDiv.remove());
 }
-addCorrectionBtn.addEventListener('click', addCorrectionPair);
+addCorrectionBtn.addEventListener('click', () => addCorrectionPair(false));
+addEditCorrectionBtn.addEventListener('click', () => addCorrectionPair(true));
 
 
-// --- FORM SUBMISSION ---
-form.addEventListener('submit', async function(e) {
+// --- FORM SUBMISSION (CREATE) ---
+mainForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     submitButton.disabled = true;
     showToast('Uploading photo...', 'info');
 
-    const corrections = Array.from(document.querySelectorAll('.correction-pair')).map(pair => ({
-        mistake: pair.querySelector('.mistake-input').value,
-        correction: pair.querySelector('.correction-input').value
-    })).filter(c => c.mistake || c.correction);
-
-    const photoFile = form.querySelector('[name="image"]').files[0];
+    const corrections = Array.from(mainCorrectionsContainer.querySelectorAll('.correction-pair')).map(pair => ({ mistake: pair.querySelector('.mistake-input').value, correction: pair.querySelector('.correction-input').value })).filter(c => c.mistake || c.correction);
+    const photoFile = mainForm.querySelector('[name="image"]').files[0];
     const imgbbFormData = new FormData();
     imgbbFormData.append('image', photoFile);
 
@@ -66,12 +69,7 @@ form.addEventListener('submit', async function(e) {
         if (!imgbbResult.success) throw new Error(imgbbResult.data?.error?.message || 'ImgBB upload failed');
         
         showToast('Saving data...', 'info');
-        
-        const sheetFormData = new URLSearchParams();
-        sheetFormData.append('nrc', form.nrc.value);
-        sheetFormData.append('name', form.name.value);
-        sheetFormData.append('phone', form.phone.value);
-        sheetFormData.append('submissiondate', form.submissiondate.value);
+        const sheetFormData = new URLSearchParams(new FormData(mainForm));
         sheetFormData.append('status', "စီစစ်ဆဲ");
         sheetFormData.append('imageurl', imgbbResult.data.url);
         sheetFormData.append('correctionsdata', JSON.stringify(corrections));
@@ -81,26 +79,45 @@ form.addEventListener('submit', async function(e) {
         if (sheetResult.result !== 'success') throw new Error(sheetResult.message);
 
         showToast('Record created successfully!', 'success');
-        form.reset();
-        correctionsContainer.innerHTML = '';
-        addCorrectionPair();
-        document.querySelector('[name="submissiondate"]').valueAsDate = new Date();
+        mainForm.reset();
+        mainCorrectionsContainer.innerHTML = ''; addCorrectionPair(false);
+        mainForm.querySelector('[name="submissiondate"]').valueAsDate = new Date();
         loadAndDisplayRecords(true);
 
+    } catch (error) { showToast(`Error: ${error.message}`, 'error'); } 
+    finally { submitButton.disabled = false; }
+});
+
+
+// --- FORM SUBMISSION (UPDATE) ---
+editForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    updateButton.disabled = true;
+    showToast('Updating record...', 'info');
+
+    const corrections = Array.from(editCorrectionsContainer.querySelectorAll('.correction-pair')).map(pair => ({ mistake: pair.querySelector('.mistake-input').value, correction: pair.querySelector('.correction-input').value })).filter(c => c.mistake || c.correction);
+    const formData = new URLSearchParams(new FormData(editForm));
+    formData.set('correctionsdata', JSON.stringify(corrections));
+
+    try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+        const result = await res.json();
+        if (result.result !== 'success') throw new Error(result.message);
+
+        showToast('Record updated successfully!', 'success');
+        editModal.style.display = 'none';
+        loadAndDisplayRecords(true);
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
     } finally {
-        submitButton.disabled = false;
+        updateButton.disabled = false;
     }
 });
 
 
 // --- DASHBOARD & DATA RENDERING ---
 async function loadAndDisplayRecords(forceRefresh = false) {
-    if (cachedData.length > 0 && !forceRefresh) {
-        populateFiltersAndRender();
-        return;
-    }
+    if (cachedData.length > 0 && !forceRefresh) { populateFiltersAndRender(); return; }
     recordList.innerHTML = '<p style="text-align:center; padding: 2rem;">Loading records...</p>';
     try {
         const res = await fetch(GOOGLE_SCRIPT_URL);
@@ -108,19 +125,15 @@ async function loadAndDisplayRecords(forceRefresh = false) {
         const data = await res.json();
         cachedData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl }));
         populateFiltersAndRender();
-    } catch(err) {
-        recordList.innerHTML = `<p style="text-align:center; padding: 2rem;">Error loading records: ${err.message}</p>`;
-    }
+    } catch(err) { recordList.innerHTML = `<p style="text-align:center; padding: 2rem;">Error loading records: ${err.message}</p>`; }
 }
 
 function populateFiltersAndRender() {
-    const monthFilter = document.getElementById('monthFilter');
+    const previousMonth = monthFilterEl.value;
     const months = [...new Set(cachedData.map(r => new Date(r.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' })))];
-    const previousValue = monthFilter.value;
-    monthFilter.innerHTML = '<option value="all">လအားလုံး</option>';
-    months.forEach(m => monthFilter.innerHTML += `<option value="${m}">${m}</option>`);
-    monthFilter.value = previousValue;
-    
+    monthFilterEl.innerHTML = '<option value="all">လအားလုံး</option>';
+    months.forEach(m => monthFilterEl.innerHTML += `<option value="${m}">${m}</option>`);
+    monthFilterEl.value = previousMonth;
     renderFilteredRecords();
 }
 
@@ -135,16 +148,12 @@ function renderFilteredRecords() {
 
     recordList.innerHTML = '';
     recordCountEl.textContent = filteredData.length;
-    if (filteredData.length === 0) {
-        recordList.innerHTML = '<p style="text-align: center; padding: 2rem;">No matching records found.</p>';
-    } else {
-        filteredData.forEach(renderRecordCard);
-    }
+    if (filteredData.length === 0) { recordList.innerHTML = '<p style="text-align: center; padding: 2rem;">No matching records found.</p>'; } 
+    else { filteredData.forEach(renderRecordCard); }
 }
 
 function renderRecordCard(record) {
-    const card = document.createElement('div');
-    card.className = 'record-card';
+    const card = document.createElement('div'); card.className = 'record-card';
     const statusClasses = { 'စီစစ်ဆဲ': 'status-pending', 'အတည်ပြုပြီး': 'status-approved', 'ပယ်ဖျက်သည်': 'status-rejected' };
     const statusClass = statusClasses[record.status] || '';
 
@@ -155,19 +164,16 @@ function renderRecordCard(record) {
     const overdueClass = (dayDiff > 3 && record.status === 'စီစစ်ဆဲ') ? 'overdue' : '';
 
     let correctionsHTML = '';
-    if (record.correctionsdata && record.correctionsdata.length > 2) { // Check if it's not an empty array "[]"
+    if (record.correctionsdata && record.correctionsdata.length > 2) {
         try {
             const corrections = JSON.parse(record.correctionsdata);
-            if (corrections.length > 0) {
-                correctionsHTML = `<div class="corrections-section"><h4>ပြင်ဆင်ချက်များ</h4><ul class="corrections-list">${corrections.map(c => `<li><strong>လွဲချက်:</strong> ${c.mistake} → <strong>အမှန်:</strong> ${c.correction}</li>`).join('')}</ul></div>`;
-            }
+            if (corrections.length > 0) { correctionsHTML = `<div class="corrections-section"><h4>ပြင်ဆင်ချက်များ</h4><ul class="corrections-list">${corrections.map(c => `<li><strong>လွဲချက်:</strong> ${c.mistake} → <strong>အမှန်:</strong> ${c.correction}</li>`).join('')}</ul></div>`; }
         } catch (e) { /* ignore parse error */ }
     }
 
-    let actionsHTML = `<button class="action-btn delete-btn" onclick="deleteRecord('${record.id}')">ဖျက်ရန်</button>`;
+    let actionsHTML = `<button class="action-btn" onclick="openEditModal('${record.id}')">ပြင်ဆင်ရန်</button><button class="action-btn delete-btn" onclick="deleteRecord('${record.id}')">ဖျက်ရန်</button>`;
     if (record.status === 'စီစစ်ဆဲ') {
-        actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'အတည်ပြုပြီး')">အတည်ပြုရန်</button>`;
-        actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'ပယ်ဖျက်သည်')">ပယ်ဖျက်ရန်</button>`;
+        actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'အတည်ပြုပြီး')">အတည်ပြုရန်</button><button class="action-btn" onclick="changeStatus('${record.id}', 'ပယ်ဖျက်သည်')">ပယ်ဖျက်ရန်</button>`;
     }
 
     card.innerHTML = `
@@ -185,21 +191,30 @@ function renderRecordCard(record) {
     recordList.appendChild(card);
 }
 
-// --- FILTER EVENT LISTENERS ---
-statusFilterContainer.addEventListener('click', e => {
-    if (e.target.matches('.status-filter-btn')) {
-        document.querySelector('.status-filter-btn.active').classList.remove('active');
-        e.target.classList.add('active');
-        currentStatusFilter = e.target.dataset.filter;
-        renderFilteredRecords();
-    }
-});
-monthFilterEl.addEventListener('change', e => {
-    currentMonthFilter = e.target.value;
-    renderFilteredRecords();
-});
+// --- FILTER & MODAL EVENT LISTENERS ---
+statusFilterContainer.addEventListener('click', e => { if (e.target.matches('.status-filter-btn')) { document.querySelector('.status-filter-btn.active').classList.remove('active'); e.target.classList.add('active'); currentStatusFilter = e.target.dataset.filter; renderFilteredRecords(); }});
+monthFilterEl.addEventListener('change', e => { currentMonthFilter = e.target.value; renderFilteredRecords(); });
+editModal.querySelector('.close-button').addEventListener('click', () => editModal.style.display = 'none');
+window.addEventListener('click', (event) => { if (event.target == editModal) { editModal.style.display = "none"; }});
 
-// --- RECORD ACTIONS (UPDATE/DELETE) ---
+// --- RECORD ACTIONS (OPEN MODAL, UPDATE STATUS, DELETE) ---
+function openEditModal(id) {
+    const record = cachedData.find(r => r.id.toString() === id);
+    if (!record) { showToast('Record not found to edit.', 'error'); return; }
+    
+    editForm.id.value = record.id;
+    editForm.nrc.value = record.nrc;
+    editForm.name.value = record.name;
+    editForm.phone.value = record.phone;
+    
+    editCorrectionsContainer.innerHTML = '';
+    if (record.correctionsdata && record.correctionsdata.length > 2) {
+        try { JSON.parse(record.correctionsdata).forEach(c => addCorrectionPair(true, c)); } catch(e) { /* ignore */ }
+    }
+    addCorrectionPair(true);
+    editModal.style.display = 'block';
+}
+
 async function changeStatus(id, newStatus) {
     showToast('Updating status...', 'info');
     const formData = new URLSearchParams({ action: 'updateStatus', id, newStatus });
@@ -211,9 +226,7 @@ async function changeStatus(id, newStatus) {
         const recordInCache = cachedData.find(r => r.id.toString() === id);
         if (recordInCache) recordInCache.status = newStatus;
         renderFilteredRecords();
-    } catch (err) {
-        showToast(`Error: ${err.message}`, 'error');
-    }
+    } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
 }
 
 async function deleteRecord(id) {
@@ -227,9 +240,7 @@ async function deleteRecord(id) {
         showToast('Record deleted successfully!', 'success');
         cachedData = cachedData.filter(r => r.id.toString() !== id);
         renderFilteredRecords();
-    } catch (err) {
-        showToast(`Error: ${err.message}`, 'error');
-    }
+    } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
 }
 
 // --- TOAST NOTIFICATION ---
@@ -240,15 +251,12 @@ function showToast(message, type = 'info') {
     toast.textContent = message;
     container.appendChild(toast);
     setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400);
-    }, 3000);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
 }
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('[name="submissiondate"]').valueAsDate = new Date();
-    addCorrectionPair();
+    mainForm.querySelector('[name="submissiondate"]').valueAsDate = new Date();
+    addCorrectionPair(false);
     switchView('form');
 });
