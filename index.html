@@ -4,17 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repair Tracker App</title>
-
-    <!-- ### START: NEW FAVICON AND APP ICON SETUP ### -->
-    <!-- This setup points to the new files you uploaded -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="msapplication-TileColor" content="#2f5fda">
-    <meta name="theme-color" content="#ffffff">
-    <!-- ### END: NEW FAVICON AND APP ICON SETUP ### -->
-
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="manifest" href="/site.webmanifest"><meta name="msapplication-TileColor" content="#2f5fda"><meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -61,6 +51,32 @@
             </header>
             <div id="recordList"></div>
         </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>မှတ်တမ်း ပြင်ဆင်ရန်</h2>
+                <button class="close-button">×</button>
+            </header>
+            <form id="editForm">
+                <input type="hidden" name="id">
+                <input type="hidden" name="action" value="update">
+                <div class="form-section">
+                    <h3>အထွေထွေ အချက်အလက်</h3>
+                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" name="nrc" required></div>
+                    <div class="form-group"><label>အမည်</label><input type="text" name="name" required></div>
+                    <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" name="phone"></div>
+                </div>
+                <div class="form-section">
+                    <h3>ပြင်ဆင်ရန် လွဲချက်များ</h3>
+                    <div id="editCorrectionsContainer"></div>
+                    <button type="button" id="addEditCorrectionBtn" class="secondary-btn">+ လွဲချက်အသစ် ထပ်ထည့်ရန်</button>
+                </div>
+                <button type="submit" id="updateButton">သိမ်းဆည်းမည်</button>
+            </form>
+        </div>
     </div>
     
     <div id="toastContainer"></div>
