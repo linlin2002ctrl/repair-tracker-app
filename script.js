@@ -70,9 +70,9 @@ mainForm.addEventListener('submit', async function(e) {
         
         showToast('Saving data...', 'info');
         
-        // <<<< BUG FIX: Build URLSearchParams manually instead of from FormData >>>>
         const sheetFormData = new URLSearchParams();
-        sheetFormData.append('action', 'create'); // Explicitly set the action
+        // <<<< BUG FIX: Explicitly adding the 'action' parameter for 'create' >>>>
+        sheetFormData.append('action', 'create'); 
         sheetFormData.append('nrc', mainForm.nrc.value);
         sheetFormData.append('name', mainForm.name.value);
         sheetFormData.append('phone', mainForm.phone.value);
