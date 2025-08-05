@@ -1,4 +1,4 @@
-// --- CONFIGURATION (UPDATED WITH YOUR NEW URL) ---
+// --- CONFIGURATION (UPDATE THIS WITH YOUR NEW URL) ---
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec'; 
 const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
@@ -44,7 +44,7 @@ function addCorrectionPair(isEdit = false, data = { mistake: '', correction: '' 
     const container = isEdit ? editCorrectionsContainer : mainCorrectionsContainer;
     const pairDiv = document.createElement('div');
     pairDiv.className = 'correction-pair';
-    pairDiv.innerHTML = `<input type="text" placeholder="လွဲချက်" class="mistake-input" value="${data.mistake}"><input type="text" placeholder="အမှန်" class="correction-input" value="${data.correction}"><button type="button" class="remove-btn">×</button>`;
+    pairDiv.innerHTML = `<input type="text" placeholder="လွဲချက်" class="mistake-input" value="${data.mistake}"><input type="text" placeholder="အမှန်" class="correction-input" value="${data.correction}"><button type="button" class="remove-btn">&times;</button>`;
     container.appendChild(pairDiv);
     pairDiv.querySelector('.remove-btn').addEventListener('click', () => pairDiv.remove());
 }
@@ -69,7 +69,10 @@ mainForm.addEventListener('submit', async function(e) {
         if (!imgbbResult.success) throw new Error(imgbbResult.data?.error?.message || 'ImgBB upload failed');
         
         showToast('Saving data...', 'info');
+        
         const sheetFormData = new URLSearchParams(new FormData(mainForm));
+        // The action parameter is now handled by the backend by default if it's missing
+        // sheetFormData.append('action', 'create'); 
         sheetFormData.append('status', "စီစစ်ဆဲ");
         sheetFormData.append('imageurl', imgbbResult.data.url);
         sheetFormData.append('correctionsdata', JSON.stringify(corrections));
@@ -167,7 +170,7 @@ function renderRecordCard(record) {
     if (record.correctionsdata && record.correctionsdata.length > 2) {
         try {
             const corrections = JSON.parse(record.correctionsdata);
-            if (corrections.length > 0) { correctionsHTML = `<div class="corrections-section"><h4>ပြင်ဆင်ချက်များ</h4><ul class="corrections-list">${corrections.map(c => `<li><strong>လွဲချက်:</strong> ${c.mistake} → <strong>အမှန်:</strong> ${c.correction}</li>`).join('')}</ul></div>`; }
+            if (corrections.length > 0) { correctionsHTML = `<div class="corrections-section"><h4>ပြင်ဆင်ချက်များ</h4><ul class="corrections-list">${corrections.map(c => `<li><strong>လွဲချက်:</strong> ${c.mistake} &rarr; <strong>အမှန်:</strong> ${c.correction}</li>`).join('')}</ul></div>`; }
         } catch (e) { /* ignore parse error */ }
     }
 
