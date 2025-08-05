@@ -1,4 +1,4 @@
-// --- CONFIGURATION (UPDATE THIS WITH YOUR NEW URL) ---
+// --- CONFIGURATION (UPDATE THIS WITH YOUR NEW URL FROM REDEPLOYMENT) ---
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec'; 
 const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
@@ -71,8 +71,6 @@ mainForm.addEventListener('submit', async function(e) {
         showToast('Saving data...', 'info');
         
         const sheetFormData = new URLSearchParams(new FormData(mainForm));
-        // The action parameter is now handled by the backend by default if it's missing
-        // sheetFormData.append('action', 'create'); 
         sheetFormData.append('status', "စီစစ်ဆဲ");
         sheetFormData.append('imageurl', imgbbResult.data.url);
         sheetFormData.append('correctionsdata', JSON.stringify(corrections));
