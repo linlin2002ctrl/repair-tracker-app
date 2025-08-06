@@ -1,6 +1,7 @@
 // --- CONFIGURATION (UPDATE THIS WITH YOUR NEW URL) ---
-const GOOGLE_SCRIPT_URL = 'သင်၏_WEB_APP_URL_အသစ်စက်စက်ကို_ဒီမှာထည့်ပါ'; 
-const IMGBB_API_KEY = 'သင်၏_IMGBB_API_KEY_ကိုထည့်ပါ';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec
+'; 
+const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
 // --- DOM ELEMENTS & STATE ---
 // ... (All existing variables remain the same) ...
