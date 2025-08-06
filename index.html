@@ -22,7 +22,6 @@
                     <div class="form-group"><label>အမည်</label><input type="text" name="name" required></div>
                     <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" name="phone"></div>
                     <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" name="submissiondate" required></div>
-                    <!-- Machine ID Dropdown Added -->
                     <div class="form-group">
                         <label>စက်နံပါတ်</label>
                         <select name="machineid" required>
@@ -45,10 +44,25 @@
                 <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
             </form>
         </main>
-        <!-- ... (Dashboard view remains the same) ... -->
+
+        <main id="dashboardView" class="view">
+            <header class="dashboard-header">
+                <h2><span id="recordCount">0</span> မှတ်တမ်းများ</h2>
+                <div class="filters">
+                    <div class="filter-group"><label for="monthFilter">လအလိုက် စစ်ရန်</label><select id="monthFilter"></select></div>
+                    <div class="filter-group-status">
+                        <button class="status-filter-btn active" data-filter="all">All</button>
+                        <button class="status-filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
+                        <button class="status-filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
+                        <button class="status-filter-btn" data-filter="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</button>
+                    </div>
+                </div>
+            </header>
+            <div id="recordList"></div>
+        </main>
     </div>
 
-    <!-- Edit Modal Updated -->
+    <!-- Edit Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <header class="modal-header">
@@ -60,10 +74,9 @@
                 <input type="hidden" name="action" value="update">
                 <div class="form-section">
                     <h3>အထွေထွေ အချက်အလက်</h3>
-                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" name="nrc" required></div>
+                    <div class="form-group"><label>နိုင်ငံသားကဒ์နံပါတ် (ခေါင်းစဉ်)</label><input type="text" name="nrc" required></div>
                     <div class="form-group"><label>အမည်</label><input type="text" name="name" required></div>
                     <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" name="phone"></div>
-                    <!-- Machine ID Dropdown Added to Edit Modal -->
                     <div class="form-group">
                         <label>စက်နံပါတ်</label>
                         <select name="machineid" required>
