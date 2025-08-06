@@ -1,4 +1,4 @@
-// --- CONFIGURATION (YOUR KEYS GO HERE) ---
+// --- CONFIGURATION ---
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec'; 
 const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
@@ -32,7 +32,7 @@ function switchView(viewName) {
     formViewBtn.classList.toggle('active', viewName === 'form');
     dashboardViewBtn.classList.toggle('active', viewName === 'dashboard');
     if (viewName === 'dashboard') {
-        loadAndDisplayRecords(true);
+        loadAndDisplayRecords(); // Load from cache first if available
     }
 }
 formViewBtn.addEventListener('click', () => switchView('form'));
@@ -71,8 +71,7 @@ mainForm.addEventListener('submit', async function(e) {
         showToast('Saving data...', 'info');
         
         const sheetFormData = new URLSearchParams();
-        // <<<< BUG FIX: Explicitly adding the 'action' parameter for 'create' >>>>
-        sheetFormData.append('action', 'create'); 
+        sheetFormData.append('action', 'create');
         sheetFormData.append('nrc', mainForm.nrc.value);
         sheetFormData.append('name', mainForm.name.value);
         sheetFormData.append('phone', mainForm.phone.value);
@@ -89,7 +88,7 @@ mainForm.addEventListener('submit', async function(e) {
         mainForm.reset();
         mainCorrectionsContainer.innerHTML = ''; addCorrectionPair(false);
         mainForm.querySelector('[name="submissiondate"]').valueAsDate = new Date();
-        loadAndDisplayRecords(true);
+        loadAndDisplayRecords(true); // Force refresh to get the latest data
 
     } catch (error) { showToast(`Error: ${error.message}`, 'error'); } 
     finally { submitButton.disabled = false; }
@@ -122,20 +121,48 @@ editForm.addEventListener('submit', async function(e) {
 });
 
 
-// --- DASHBOARD & DATA RENDERING ---
+// --- DASHBOARD & DATA RENDERING (with Smart Caching) ---
 async function loadAndDisplayRecords(forceRefresh = false) {
-    if (cachedData.length > 0 && !forceRefresh) { populateFiltersAndRender(); return; }
-    recordList.innerHTML = '<p style="text-align:center; padding: 2rem;">Loading records...</p>';
+    const cachedRecords = localStorage.getItem('repairTrackerData');
+
+    if (!forceRefresh && cachedRecords) {
+        cachedData = JSON.parse(cachedRecords);
+        console.log('Loaded from cache.');
+        populateFiltersAndRender();
+        fetchFreshData(); // Silently fetch fresh data in the background
+        return;
+    }
+    
+    recordList.innerHTML = '<p style="text-align:center; padding: 2rem;">Loading records from network...</p>';
+    await fetchFreshData();
+}
+
+async function fetchFreshData() {
     try {
         const res = await fetch(GOOGLE_SCRIPT_URL);
         if (!res.ok) throw new Error('Network response was not ok.');
         const data = await res.json();
-        cachedData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl }));
+        const freshData = data.filter(r => r.id).map(r => ({ ...r, imageurl: r.imageurl || r.imageUrl }));
+        
+        localStorage.setItem('repairTrackerData', JSON.stringify(freshData));
+        cachedData = freshData;
         populateFiltersAndRender();
-    } catch(err) { recordList.innerHTML = `<p style="text-align:center; padding: 2rem;">Error loading records: ${err.message}</p>`; }
+        console.log("Fresh data fetched and cache updated.");
+
+    } catch(err) {
+        showToast(`Could not fetch fresh data: ${err.message}`, 'error');
+        populateFiltersAndRender(); 
+    }
 }
 
+
 function populateFiltersAndRender() {
+    if (!cachedData || cachedData.length === 0) {
+        recordList.innerHTML = '<p style="text-align: center; padding: 2rem;">No records available.</p>';
+        recordCountEl.textContent = 0;
+        return;
+    }
+
     const previousMonth = monthFilterEl.value;
     const months = [...new Set(cachedData.map(r => new Date(r.submissiondate).toLocaleString('my-MM', { month: 'long', year: 'numeric' })))];
     monthFilterEl.innerHTML = '<option value="all">လအားလုံး</option>';
@@ -230,9 +257,8 @@ async function changeStatus(id, newStatus) {
         const result = await res.json();
         if (result.result !== 'success') throw new Error(result.message);
         showToast('Status updated successfully!', 'success');
-        const recordInCache = cachedData.find(r => r.id.toString() === id);
-        if (recordInCache) recordInCache.status = newStatus;
-        renderFilteredRecords();
+        // Force a full refresh to get the latest data from server
+        loadAndDisplayRecords(true);
     } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
 }
 
@@ -245,8 +271,8 @@ async function deleteRecord(id) {
         const result = await res.json();
         if (result.result !== 'success') throw new Error(result.message);
         showToast('Record deleted successfully!', 'success');
-        cachedData = cachedData.filter(r => r.id.toString() !== id);
-        renderFilteredRecords();
+        // Force a full refresh to get the latest data from server
+        loadAndDisplayRecords(true);
     } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
 }
 
