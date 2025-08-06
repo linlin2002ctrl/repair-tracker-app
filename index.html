@@ -1,50 +1,85 @@
 <!DOCTYPE html>
 <html lang="my">
-<!-- ... (The <head> section remains the same) ... -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repair Tracker App</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="manifest" href="/site.webmanifest"><meta name="msapplication-TileColor" content="#2f5fda"><meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
     <div class="app-container">
-        <!-- ... (Navigation remains the same) ... -->
+        <nav class="app-nav">
+            <button id="formViewBtn" class="nav-btn active">မှတ်တမ်းတင်ရန်</button>
+            <button id="dashboardViewBtn" class="nav-btn">Dashboard</button>
+        </nav>
 
-        <!-- Form View (No changes needed) -->
         <main id="formView" class="view active-view">
-            <!-- ... (Your existing form code) ... -->
+             <form id="repairForm">
+                <div class="form-section">
+                    <h3>အထွေထွေ အချက်အလက်</h3>
+                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" name="nrc" required></div>
+                    <div class="form-group"><label>အမည်</label><input type="text" name="name" required></div>
+                    <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" name="phone"></div>
+                    <div class="form-group"><label>တင်သွင်းသည့်ရက်</label><input type="date" name="submissiondate" required></div>
+                </div>
+                <div class="form-section">
+                    <h3>ပြင်ဆင်ရန် လွဲချက်များ</h3>
+                    <div id="correctionsContainer"></div>
+                    <button type="button" id="addCorrectionBtn" class="secondary-btn">+ လွဲချက်အသစ် ထပ်ထည့်ရန်</button>
+                </div>
+                <div class="form-section">
+                    <h3>သက်ဆိုင်ရာ ဓာတ်ပုံ</h3>
+                    <div class="form-group"><input type="file" name="image" accept="image/png, image/jpeg, image/jpg" required></div>
+                </div>
+                <button type="submit" id="submitButton">မှတ်တမ်းတင်မည်</button>
+            </form>
         </main>
 
-        <!-- <<<< UPGRADED Dashboard View >>>> -->
         <main id="dashboardView" class="view">
-            <!-- 1. KPI Stats Section -->
-            <div class="kpi-container">
-                <div class="kpi-box overdue-box"><div class="kpi-value" id="kpiOverdue">0</div><div class="kpi-label">🚨 Overdue</div></div>
-                <div class="kpi-box pending-box"><div class="kpi-value" id="kpiPending">0</div><div class="kpi-label">⏳ Pending</div></div>
-                <div class="kpi-box completed-box"><div class="kpi-value" id="kpiCompleted">0</div><div class="kpi-label">✅ Completed (This Month)</div></div>
-                <div class="kpi-box total-box"><div class="kpi-value" id="kpiTotal">0</div><div class="kpi-label">📈 Total</div></div>
-            </div>
-
-            <!-- 2. Controls Section -->
             <header class="dashboard-header">
-                <div class="controls-left">
-                    <input type="search" id="searchInput" placeholder="အမည်၊ ဖုန်း၊ NRC ဖြင့် ရှာရန်...">
-                    <select id="monthFilter"></select>
-                </div>
-                <div class="controls-right">
-                    <div class="status-filter-group">
-                        <!-- ... (Status filter buttons) ... -->
-                    </div>
-                    <div class="view-switcher">
-                         <button id="cardViewBtn" class="view-btn active">Cards</button>
-                         <button id="tableViewBtn" class="view-btn">Table</button>
+                <h2><span id="recordCount">0</span> မှတ်တမ်းများ</h2>
+                <div class="filters">
+                    <div class="filter-group"><label for="monthFilter">လအလိုက် စစ်ရန်</label><select id="monthFilter"></select></div>
+                    <div class="filter-group-status">
+                        <button class="status-filter-btn active" data-filter="all">All</button>
+                        <button class="status-filter-btn" data-filter="စီစစ်ဆဲ">စီစစ်ဆဲ</button>
+                        <button class="status-filter-btn" data-filter="အတည်ပြုပြီး">အတည်ပြုပြီး</button>
+                        <button class="status-filter-btn" data-filter="ပယ်ဖျက်သည်">ပယ်ဖျက်သည်</button>
                     </div>
                 </div>
             </header>
-
-            <!-- 3. Records Display Area -->
-            <div id="recordDisplayArea">
-                <!-- Records will be rendered here as cards or a table -->
-            </div>
+            <div id="recordList"></div>
         </main>
     </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>မှတ်တမ်း ပြင်ဆင်ရန်</h2>
+                <button class="close-button">&times;</button>
+            </header>
+            <form id="editForm">
+                <input type="hidden" name="id">
+                <input type="hidden" name="action" value="update">
+                <div class="form-section">
+                    <h3>အထွေထွေ အချက်အလက်</h3>
+                    <div class="form-group"><label>နိုင်ငံသားကဒ်နံပါတ် (ခေါင်းစဉ်)</label><input type="text" name="nrc" required></div>
+                    <div class="form-group"><label>အမည်</label><input type="text" name="name" required></div>
+                    <div class="form-group"><label>ဖုန်းနံပါတ်</label><input type="tel" name="phone"></div>
+                </div>
+                <div class="form-section">
+                    <h3>ပြင်ဆင်ရန် လွဲချက်များ</h3>
+                    <div id="editCorrectionsContainer"></div>
+                    <button type="button" id="addEditCorrectionBtn" class="secondary-btn">+ လွဲချက်အသစ် ထပ်ထည့်ရန်</button>
+                </div>
+                <button type="submit" id="updateButton">သိမ်းဆည်းမည်</button>
+            </form>
+        </div>
+    </div>
     
-    <!-- ... (Edit Modal and Toast Container remain the same) ... -->
+    <div id="toastContainer"></div>
     <script src="script.js"></script>
 </body>
 </html>
