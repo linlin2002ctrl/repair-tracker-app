@@ -2,9 +2,10 @@
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMplJ5ia4MNTcMls_mw7r2tkQu1nby3Rzrk82p-_QDS9O-tdc8YZQRBFXuCmcIxaYb/exec'; 
 const IMGBB_API_KEY = '03a91e4e8c74467418a93ef6688bcf6d';
 
-// --- DOM ELEMENTS & STATE ---
+// This script is wrapped in a DOMContentLoaded listener to ensure all HTML elements are ready before the script runs.
 document.addEventListener('DOMContentLoaded', () => {
-    // DECLARE ALL DOM ELEMENTS HERE, AFTER THE DOCUMENT IS LOADED
+    
+    // --- DOM ELEMENTS & STATE ---
     const formView = document.getElementById('formView');
     const dashboardView = document.getElementById('dashboardView');
     const formViewBtn = document.getElementById('formViewBtn');
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(pairDiv);
         pairDiv.querySelector('.remove-btn').addEventListener('click', () => pairDiv.remove());
     }
-    
+
     // --- FORM SUBMISSION (CREATE) ---
     async function handleCreateSubmit(e) {
         e.preventDefault();
@@ -66,13 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             showToast('Saving data...', 'info');
             
-            const sheetFormData = new URLSearchParams();
+            const sheetFormData = new URLSearchParams(new FormData(mainForm));
             sheetFormData.append('action', 'create');
-            sheetFormData.append('nrc', mainForm.querySelector('[name="nrc"]').value);
-            sheetFormData.append('name', mainForm.querySelector('[name="name"]').value);
-            sheetFormData.append('phone', mainForm.querySelector('[name="phone"]').value);
-            sheetFormData.append('machineid', mainForm.querySelector('[name="machineid"]').value);
-            sheetFormData.append('submissiondate', mainForm.querySelector('[name="submissiondate"]').value);
             sheetFormData.append('status', "စီစစ်ဆဲ");
             sheetFormData.append('imageurl', imgbbResult.data.url);
             sheetFormData.append('correctionsdata', JSON.stringify(corrections));
@@ -148,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     function populateFiltersAndRender() {
         if (!cachedData || cachedData.length === 0) {
             recordList.innerHTML = '<p style="text-align: center; padding: 2rem;">No records available.</p>';
@@ -198,4 +195,93 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let actionsHTML = `<button class="action-btn" onclick="openEditModal('${record.id}')">ပြင်ဆင်ရန်</button><button class="action-btn delete-btn" onclick="deleteRecord('${record.id}')">ဖျက်ရန်</button>`;
-        if (record.
+        if (record.status === 'စီစစ်ဆဲ') {
+            actionsHTML += `<button class="action-btn" onclick="changeStatus('${record.id}', 'အတည်ပြုပြီး')">အတည်ပြုရန်</button><button class="action-btn" onclick="changeStatus('${record.id}', 'ပယ်ဖျက်သည်')">ပယ်ဖျက်ရန်</button>`;
+        }
+
+        card.innerHTML = `
+            <div class="record-card-content">
+                <h2>${record.nrc}</h2>
+                <div class="record-property"><strong>အမည်:</strong><span>${record.name}</span></div>
+                <div class="record-property"><strong>ဖုန်း:</strong><span>${record.phone || 'N/A'}</span></div>
+                <div class="record-property"><strong>စက်နံပါတ်:</strong><span>${record.machineid || 'N/A'}</span></div>
+                <div class="record-property"><strong class="${overdueClass}">တင်သွင်းရက်:</strong><span>${submissionDate.toLocaleDateString('en-GB')} ${daysSinceText}</span></div>
+                <div class="record-property"><strong>အခြေအနေ:</strong><span><span class="status-tag ${statusClass}">${record.status}</span></span></div>
+                ${correctionsHTML}
+                <div class="card-actions">${actionsHTML}</div>
+            </div>
+            ${record.imageurl ? `<img src="${record.imageurl}" alt="Record Photo" class="record-image" loading="lazy">` : ''}
+        `;
+        recordList.appendChild(card);
+    }
+    
+    window.openEditModal = (id) => {
+        const record = cachedData.find(r => r.id.toString() === id);
+        if (!record) { showToast('Record not found to edit.', 'error'); return; }
+        
+        editForm.querySelector('[name="id"]').value = record.id;
+        editForm.querySelector('[name="nrc"]').value = record.nrc;
+        editForm.querySelector('[name="name"]').value = record.name;
+        editForm.querySelector('[name="phone"]').value = record.phone;
+        editForm.querySelector('[name="machineid"]').value = record.machineid;
+        
+        editCorrectionsContainer.innerHTML = '';
+        if (record.correctionsdata && record.correctionsdata.length > 2) {
+            try { JSON.parse(record.correctionsdata).forEach(c => addCorrectionPair(true, c)); } catch(e) { /* ignore */ }
+        }
+        addCorrectionPair(true);
+        editModal.style.display = 'block';
+    }
+
+    window.changeStatus = async (id, newStatus) => {
+        showToast('Updating status...', 'info');
+        const formData = new URLSearchParams({ action: 'updateStatus', id, newStatus });
+        try {
+            const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.result !== 'success') throw new Error(result.message);
+            showToast('Status updated successfully!', 'success');
+            loadAndDisplayRecords(true);
+        } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
+    }
+
+    window.deleteRecord = async (id) => {
+        if (!confirm('ဤမှတ်တမ်းကို အမှန်တကယ် ဖျက်သိမ်းလိုပါသလား?')) return;
+        showToast('Deleting record...', 'info');
+        const formData = new URLSearchParams({ action: 'delete', id });
+        try {
+            const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.result !== 'success') throw new Error(result.message);
+            showToast('Record deleted successfully!', 'success');
+            loadAndDisplayRecords(true);
+        } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
+    }
+
+    // --- TOAST NOTIFICATION ---
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+    }
+
+    // --- INITIALIZATION ---
+    formViewBtn.addEventListener('click', () => switchView('form'));
+    dashboardViewBtn.addEventListener('click', () => switchView('dashboard'));
+    addCorrectionBtn.addEventListener('click', () => addCorrectionPair(false));
+    addEditCorrectionBtn.addEventListener('click', () => addCorrectionPair(true));
+    mainForm.addEventListener('submit', handleCreateSubmit);
+    editForm.addEventListener('submit', handleUpdateSubmit);
+    statusFilterContainer.addEventListener('click', e => { if (e.target.matches('.status-filter-btn')) { document.querySelector('.status-filter-btn.active').classList.remove('active'); e.target.classList.add('active'); currentStatusFilter = e.target.dataset.filter; renderFilteredRecords(); }});
+    monthFilterEl.addEventListener('change', e => { currentMonthFilter = e.target.value; renderFilteredRecords(); });
+    editModal.querySelector('.close-button').addEventListener('click', () => editModal.style.display = 'none');
+    window.addEventListener('click', (event) => { if (event.target == editModal) { editModal.style.display = "none"; }});
+
+    mainForm.querySelector('[name="submissiondate"]').valueAsDate = new Date();
+    addCorrectionPair(false);
+    switchView('form');
+});
